@@ -143,9 +143,26 @@ def load_cost_model(model_id: str = "nse_intraday") -> tuple[CostModelConfig, Lo
 
 
 def load_social_momentum_v1() -> tuple[SocialMomentumV1Params, LoadedFile]:
-    return load_yaml_dataclass(
-        _PACKAGE_ROOT / "strategies" / "social_momentum" / "v1" / "params.yaml", SocialMomentumV1Params
-    )
+    """Legacy facade view of Strategy #001 v1 parameters, read from its strategy.yaml (single source)."""
+    path = _PACKAGE_ROOT / "strategies" / "social_momentum" / "v1" / "strategy.yaml"
+    try:
+        raw = path.read_bytes()
+        spec = yaml.safe_load(raw)
+        exits, params = spec["exit_conditions"], spec["parameters"]
+        view = SocialMomentumV1Params(
+            strategy_id=spec["strategy_id"],
+            version=spec["version"],
+            take_profit_pct=float(exits["take_profit_pct"]),
+            stop_loss_pct=float(exits["stop_loss_pct"]),
+            max_holding_minutes=int(exits["time_stop_minutes"]),
+            min_order_book_imbalance=float(params["min_order_book_imbalance"]),
+            min_relative_volume=float(params["min_relative_volume"]),
+            min_calibrated_probability=float(params["min_p_win"]),
+            min_quality_score=float(params["min_quality_score"]),
+        )
+    except (OSError, KeyError, TypeError, ValueError, yaml.YAMLError) as e:
+        raise ConfigError(f"cannot load {path}: {e}") from e
+    return view, LoadedFile(str(path), hashlib.sha256(raw).hexdigest())
 
 
 def load_runtime() -> tuple[RuntimeSettings, LoadedFile]:

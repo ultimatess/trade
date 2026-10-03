@@ -18,16 +18,13 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from tests.golden.legacy import oracle
 from trade.backtesting.engine import BacktestRunner
 from trade.brokers.paper import IndianPaperBroker
 from trade.core.execution.charges import IndianTaxCalculator
-from trade.core.market_state.models import MarketSnapshot
 from trade.core.risk.engine import RiskEngine
-from trade.core.signals.models import SocialSignal
-from trade.core.strategy.calibration import CalibrationEngine
 from trade.data.providers.social import SocialMomentumScanner
 from trade.paper.trading_system import QuantTradingSystem
-from trade.strategies.social_momentum.reflex import FastReflexScorer
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 
@@ -112,23 +109,16 @@ def _case_grid(n: int = 300, seed: int = 7) -> list[dict[str, Any]]:
 
 
 def characterize_reflex() -> list[dict[str, Any]]:
-    scorer = FastReflexScorer(CalibrationEngine())
-    out = []
-    for c in _case_grid():
-        d = scorer.evaluate(MarketSnapshot(**c["snapshot"]), SocialSignal(**c["signal"]))
-        out.append(dataclasses.asdict(d))
-    return out
+    """Pinned to the frozen legacy oracle (tests/golden/legacy/oracle.py)."""
+    return [oracle.reflex_evaluate(c["snapshot"], c["signal"]) for c in _case_grid()]
 
 
 def characterize_risk() -> list[dict[str, Any]]:
+    """Pinned to the frozen legacy oracle; each case starts with a clear kill switch."""
     out = []
-    with tempfile.TemporaryDirectory() as tmp:
-        for i, c in enumerate(_case_grid()):
-            engine = RiskEngine(lockfile_path=str(Path(tmp) / f"k{i}.lock"))
-            passed, reasons = engine.validate_pre_trade_gates(
-                snapshot=MarketSnapshot(**c["snapshot"]), signal=SocialSignal(**c["signal"]), **c["context"]
-            )
-            out.append({"passed": passed, "reasons": reasons, "kill_after": engine.is_kill_switch_active()})
+    for c in _case_grid():
+        passed, reasons, triggered = oracle.pre_trade_gates(c["snapshot"], c["signal"], c["context"], False)
+        out.append({"passed": passed, "reasons": reasons, "kill_after": triggered})
     return out
 
 

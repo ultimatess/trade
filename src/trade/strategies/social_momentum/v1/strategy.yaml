@@ -1,0 +1,74 @@
+# Strategy #001 - Social Momentum v1 (legacy migration).
+# IMMUTABLE: pinned by FINGERPRINT. Any change must be a new version (v2).
+strategy_id: social_momentum
+version: 1
+name: Social Momentum 1% Scalp
+description: >
+  Long-only NSE intraday entry when social mention acceleration coincides with
+  order-book buying pressure and a relative-volume surge. Hand-weighted scores;
+  migrated unchanged from the legacy FastReflexScorer and pre-trade gates.
+hypothesis_id: null              # legacy strategy predates the hypothesis registry
+provenance: legacy_hand_set_unvalidated
+probability_calibration: uncalibrated
+universe:
+  market: NSE
+  selector: liquid_cash_equities
+  min_adv_inr: 100000000.0
+timeframe: 1m
+session:
+  entry_start: "09:30"
+  entry_end: "14:30"
+  flatten_at: "15:10"
+  tz: Asia/Kolkata
+required_data:
+  - {kind: quote}
+  - {kind: order_book, depth: 5}
+  - {kind: ohlcv, timeframe: 1m, lookback: 20}
+  - {kind: social_mentions, lookback: 24h}
+features:
+  - {name: order_book_imbalance, version: 1}
+  - {name: relative_volume, version: 1, params: {window: 20}}
+  - {name: vwap_session, version: 1}
+  - {name: mention_velocity_z, version: 1, params: {recent: 1h, baseline: 24h}}
+  - {name: unique_verified_ratio, version: 1}
+  - {name: spam_cluster_score, version: 1}
+parameters:
+  min_order_book_imbalance: 0.35
+  min_relative_volume: 3.0
+  max_spam_score: 0.30
+  min_p_organic: 0.70
+  min_p_win: 0.65
+  min_quality_score: 75.0
+  kelly_payoff_ratio: 0.75       # legacy value derived from Rs 54.26 friction (D-004)
+  kelly_fraction: 0.25
+  max_fraction: 0.20
+entry_conditions: [obi_ge_min, rvol_ge_min, spam_le_max, p_organic_ge_min, p_win_ge_min, quality_ge_min]
+exit_conditions:
+  take_profit_pct: 0.010
+  stop_loss_pct: 0.007
+  time_stop_minutes: 35
+  session_flatten: true
+invalidation_conditions: [spam_cluster_detected]
+position_sizing:
+  method: fractional_kelly
+  fraction: 0.25
+  cap_fraction: 0.20
+  requires_calibration: true
+risk_requirements:
+  max_open_positions: 2
+  max_order_notional_inr: 20000.0
+reason_codes:
+  - ENTRY_SOCIAL_MOMENTUM
+  - NO_SOCIAL_SIGNAL
+  - OBI_BELOW_MIN
+  - RVOL_BELOW_MIN
+  - SPAM_CLUSTER_DETECTED
+  - P_ORGANIC_BELOW_MIN
+  - P_WIN_BELOW_MIN
+  - QUALITY_BELOW_MIN
+failure_modes:
+  - Bot-driven pump and dump with organic-looking text
+  - Social signal lags price (signal arrives after the move)
+  - Thin books where OBI flips within seconds
+  - Hand-set weights and calibration table were never fitted to data
+cost_model: nse_intraday@1
