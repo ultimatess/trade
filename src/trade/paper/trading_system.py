@@ -10,14 +10,14 @@ import sys
 from typing import Dict, List
 from datetime import datetime
 
-from core.config import config
-from core.market_state.models import MarketSnapshot
-from core.signals.models import SocialSignal
-from core.risk.engine import RiskEngine
-from strategies.social_momentum.reflex import FastReflexScorer
-from core.strategy.calibration import CalibrationEngine
-from data.providers.social import SocialMomentumScanner
-from brokers.paper import IndianPaperBroker
+from trade.core.config import config
+from trade.core.market_state.models import MarketSnapshot
+from trade.core.signals.models import SocialSignal
+from trade.core.risk.engine import RiskEngine
+from trade.strategies.social_momentum.reflex import FastReflexScorer
+from trade.core.strategy.calibration import CalibrationEngine
+from trade.data.providers.social import SocialMomentumScanner
+from trade.brokers.paper import IndianPaperBroker
 
 # Setup clean structured logging
 logging.basicConfig(

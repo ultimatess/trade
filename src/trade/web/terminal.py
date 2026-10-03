@@ -4,9 +4,9 @@ Displays Live NAV, Open Positions, Brier Calibration, and Kill Switch Status.
 """
 
 from datetime import datetime
-from core.config import config
-from core.risk.engine import RiskEngine
-from brokers.paper import IndianPaperBroker
+from trade.core.config import config
+from trade.core.risk.engine import RiskEngine
+from trade.brokers.paper import IndianPaperBroker
 
 class TerminalDashboard:
     """Renders high-clarity status reports for the trading system."""

@@ -4,7 +4,7 @@ Computes exact brokerage, STT, Exchange transaction charges, SEBI fees, Stamp Du
 """
 
 from typing import Dict
-from core.config import config
+from trade.core.config import config
 
 class IndianTaxCalculator:
     """Accurately calculates real-world transaction friction on Indian markets."""

@@ -6,15 +6,15 @@ Reflex Calibration, and OCO Execution.
 
 import os
 import unittest
-from core.config import config
-from core.market_state.models import MarketSnapshot
-from core.signals.models import SocialSignal
-from core.execution.charges import IndianTaxCalculator
-from core.risk.engine import RiskEngine
-from strategies.social_momentum.reflex import FastReflexScorer
-from core.strategy.calibration import CalibrationEngine
-from brokers.paper import IndianPaperBroker
-from backtesting.engine import BacktestRunner, BacktestMetrics
+from trade.core.config import config
+from trade.core.market_state.models import MarketSnapshot
+from trade.core.signals.models import SocialSignal
+from trade.core.execution.charges import IndianTaxCalculator
+from trade.core.risk.engine import RiskEngine
+from trade.strategies.social_momentum.reflex import FastReflexScorer
+from trade.core.strategy.calibration import CalibrationEngine
+from trade.brokers.paper import IndianPaperBroker
+from trade.backtesting.engine import BacktestRunner, BacktestMetrics
 
 class TestQuantSystem(unittest.TestCase):
 

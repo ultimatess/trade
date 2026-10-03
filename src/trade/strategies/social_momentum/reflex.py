@@ -6,11 +6,11 @@ Calculates capped quarter-Kelly sizing and monitors Brier calibration scores.
 
 import logging
 from typing import List, Optional
-from core.config import config
-from core.market_state.models import MarketSnapshot
-from core.signals.models import SocialSignal
-from core.strategy.models import ReflexDecision
-from core.strategy.calibration import CalibrationEngine
+from trade.core.config import config
+from trade.core.market_state.models import MarketSnapshot
+from trade.core.signals.models import SocialSignal
+from trade.core.strategy.models import ReflexDecision
+from trade.core.strategy.calibration import CalibrationEngine
 
 logger = logging.getLogger("ReflexEngine")
 

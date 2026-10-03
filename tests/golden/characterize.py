@@ -18,17 +18,17 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List
 
-from core.config import config
-from core.market_state.models import MarketSnapshot
-from core.signals.models import SocialSignal
-from core.execution.charges import IndianTaxCalculator
-from core.risk.engine import RiskEngine
-from core.strategy.calibration import CalibrationEngine
-from strategies.social_momentum.reflex import FastReflexScorer
-from data.providers.social import SocialMomentumScanner
-from brokers.paper import IndianPaperBroker
-from backtesting.engine import BacktestRunner
-from paper.trading_system import QuantTradingSystem
+from trade.core.config import config
+from trade.core.market_state.models import MarketSnapshot
+from trade.core.signals.models import SocialSignal
+from trade.core.execution.charges import IndianTaxCalculator
+from trade.core.risk.engine import RiskEngine
+from trade.core.strategy.calibration import CalibrationEngine
+from trade.strategies.social_momentum.reflex import FastReflexScorer
+from trade.data.providers.social import SocialMomentumScanner
+from trade.brokers.paper import IndianPaperBroker
+from trade.backtesting.engine import BacktestRunner
+from trade.paper.trading_system import QuantTradingSystem
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 

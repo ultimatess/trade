@@ -3,7 +3,7 @@ Historical Backtest Runner & Gate Verification Script.
 Executes multi-regime market simulation and verifies statistical criteria.
 """
 
-from backtesting.engine import BacktestRunner
+from trade.backtesting.engine import BacktestRunner
 
 def main():
     print("=" * 75)

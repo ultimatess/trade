@@ -25,16 +25,18 @@ A zero-error, 3-layer quantitative trading system engineered for **Indian Equiti
 
 ## Repository Layout
 ```
-core/            Deterministic core (config, market_state, strategy, signals, risk, execution, portfolio, ledger)
-data/            Data providers, datasets, data quality checks
-strategies/      Strategy implementations (social_momentum, breakout, mean_reversion, generated)
-research/        Experiments, hypotheses, validation, walk-forward, red-team
-agents/          Advisory research agents (researcher, strategy_builder, validator, red_team)
-backtesting/     Backtest harness & statistical gates
-paper/           Paper trading execution loop
-brokers/         Broker adapters (paper)
-web/             Web dashboard, REST API, terminal monitor
-tests/           Unit & integration tests
+src/trade/
+  core/          Deterministic core (config, market_state, strategy, signals, risk, execution, portfolio, ledger)
+  data/          Data providers, datasets, data quality checks
+  strategies/    Strategy implementations (social_momentum, breakout, mean_reversion, generated)
+  research/      Experiments, hypotheses, validation, walk-forward, red-team
+  agents/        Advisory research agents (researcher, strategy_builder, validator, red_team)
+  backtesting/   Backtest harness & statistical gates
+  paper/         Paper trading execution loop
+  brokers/       Broker adapters (paper)
+  web/           Web dashboard, REST API, terminal monitor
+tests/           Unit, golden-master & integration tests
+docs/            Architecture & audit documents
 ```
 
 ---
@@ -60,21 +62,21 @@ tests/           Unit & integration tests
 
 ### 1. Run Comprehensive Unit & Integration Tests
 ```bash
-python3 -m unittest discover tests
+uv run pytest
 ```
 
 ### 2. Run Historical Multi-Regime Backtest Gate
 Tests Sharpe, Max Drawdown, Hit Rate, and out-of-sample t-statistic:
 ```bash
-python3 -m backtesting
+uv run python -m trade.backtesting
 ```
 
 ### 3. Run Live Execution Loop Demonstration
 ```bash
-python3 -m paper
+uv run python -m trade.paper
 ```
 
 ### 4. Render Live Monitoring Dashboard
 ```bash
-python3 -m web.terminal
+uv run python -m trade.web.terminal
 ```

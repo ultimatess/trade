@@ -7,9 +7,9 @@ Enforces hardcoded capital caps, circuit limits, and emergency flattening.
 import os
 import logging
 from typing import Tuple, List, Optional
-from core.config import config
-from core.market_state.models import MarketSnapshot
-from core.signals.models import SocialSignal
+from trade.core.config import config
+from trade.core.market_state.models import MarketSnapshot
+from trade.core.signals.models import SocialSignal
 
 logger = logging.getLogger("RiskEngine")
 

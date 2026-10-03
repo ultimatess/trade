@@ -3,8 +3,8 @@ Paper Trading Entry Point.
 Runs a demonstration cycle of the live execution loop against the paper broker.
 """
 
-from core.config import config
-from paper.trading_system import QuantTradingSystem
+from trade.core.config import config
+from trade.paper.trading_system import QuantTradingSystem
 
 def main():
     system = QuantTradingSystem()

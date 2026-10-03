@@ -6,11 +6,11 @@ Accurately models NSE order matching, OCO brackets, slippage, and statutory taxe
 import uuid
 import logging
 from typing import Dict, List, Optional
-from core.config import config
-from core.execution.models import Order
-from core.portfolio.models import Position
-from core.ledger.models import TradeResult
-from core.execution.charges import IndianTaxCalculator
+from trade.core.config import config
+from trade.core.execution.models import Order
+from trade.core.portfolio.models import Position
+from trade.core.ledger.models import TradeResult
+from trade.core.execution.charges import IndianTaxCalculator
 
 logger = logging.getLogger("PaperBroker")
 

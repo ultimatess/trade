@@ -8,7 +8,7 @@ Run:
 
 import sys
 import argparse
-from web.server import run_server
+from trade.web.server import run_server
 
 def main():
     parser = argparse.ArgumentParser(description="Start the Indian Quant Trading Web Dashboard.")

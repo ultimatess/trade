@@ -10,7 +10,7 @@ import urllib.request
 import json
 import logging
 from typing import Dict, List, Optional
-from core.signals.models import SocialSignal
+from trade.core.signals.models import SocialSignal
 
 logger = logging.getLogger("SocialScanner")
 
