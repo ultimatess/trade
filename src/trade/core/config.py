@@ -1,17 +1,15 @@
 """
 System configuration, split by authority:
 
-- RiskLimits          config/risk_limits.yaml           (deterministic risk; frozen)
+- RiskLimits          config/risk_limits.yaml           (deterministic risk + sizing policy; frozen)
 - CostModelConfig     config/cost_models/<id>.yaml      (statutory/broker charges)
-- SocialMomentumV1    strategies/social_momentum/v1/params.yaml
 - RuntimeSettings     config/runtime.yaml
+Strategy parameters are NOT system config: each strategy version owns its strategy.yaml.
 
 Every file is loaded once, validated strictly (missing or unknown keys fail),
 and fingerprinted with SHA-256. Loading fails closed: a missing or malformed
 file raises at import, so nothing can trade on default values.
 
-`config` is a transitional facade exposing the legacy TradingConfig attribute
-names so existing callers behave identically. It is removed in Phase 2.
 """
 
 from __future__ import annotations
@@ -81,19 +79,6 @@ class CostModelConfig:
 
 
 @dataclass(frozen=True)
-class SocialMomentumV1Params:
-    strategy_id: str
-    version: int
-    take_profit_pct: float
-    stop_loss_pct: float
-    max_holding_minutes: int
-    min_order_book_imbalance: float
-    min_relative_volume: float
-    min_calibrated_probability: float
-    min_quality_score: float
-
-
-@dataclass(frozen=True)
 class RuntimeSettings:
     version: int
     starting_capital_inr: float
@@ -149,29 +134,6 @@ def load_cost_model(model_id: str = "nse_intraday") -> tuple[CostModelConfig, Lo
     return load_yaml_dataclass(config_dir() / "cost_models" / f"{model_id}.yaml", CostModelConfig)
 
 
-def load_social_momentum_v1() -> tuple[SocialMomentumV1Params, LoadedFile]:
-    """Legacy facade view of Strategy #001 v1 parameters, read from its strategy.yaml (single source)."""
-    path = _PACKAGE_ROOT / "strategies" / "social_momentum" / "v1" / "strategy.yaml"
-    try:
-        raw = path.read_bytes()
-        spec = yaml.safe_load(raw)
-        exits, params = spec["exit_conditions"], spec["parameters"]
-        view = SocialMomentumV1Params(
-            strategy_id=spec["strategy_id"],
-            version=spec["version"],
-            take_profit_pct=float(exits["take_profit_pct"]),
-            stop_loss_pct=float(exits["stop_loss_pct"]),
-            max_holding_minutes=int(exits["time_stop_minutes"]),
-            min_order_book_imbalance=float(params["min_order_book_imbalance"]),
-            min_relative_volume=float(params["min_relative_volume"]),
-            min_calibrated_probability=float(params["min_p_win"]),
-            min_quality_score=float(params["min_quality_score"]),
-        )
-    except (OSError, KeyError, TypeError, ValueError, yaml.YAMLError) as e:
-        raise ConfigError(f"cannot load {path}: {e}") from e
-    return view, LoadedFile(str(path), hashlib.sha256(raw).hexdigest())
-
-
 def load_runtime() -> tuple[RuntimeSettings, LoadedFile]:
     settings, meta = load_yaml_dataclass(config_dir() / "runtime.yaml", RuntimeSettings)
     broker = os.environ.get("BROKER_TYPE")
@@ -182,127 +144,19 @@ def load_runtime() -> tuple[RuntimeSettings, LoadedFile]:
 
 @dataclass(frozen=True)
 class TradingConfig:
-    """Legacy attribute facade over the split configuration (transitional, Phase 1 only)."""
+    """System configuration in force. Strategy parameters live in each strategy's strategy.yaml."""
 
     risk: RiskLimits
     costs: CostModelConfig
-    strategy: SocialMomentumV1Params
     runtime: RuntimeSettings
     sources: tuple[LoadedFile, ...]
-
-    LOCKFILE_PATH: str = "trading.lock"
-
-    @property
-    def STARTING_CAPITAL(self) -> float:
-        return self.runtime.starting_capital_inr
-
-    @property
-    def BROKER_TYPE(self) -> str:
-        return self.runtime.broker_type
-
-    @property
-    def MAX_CAPITAL_PER_TRADE(self) -> float:
-        return self.risk.max_order_notional_inr
-
-    @property
-    def MAX_CONCURRENT_POSITIONS(self) -> int:
-        return self.risk.max_open_positions
-
-    @property
-    def MAX_DAILY_LOSS(self) -> float:
-        return self.risk.max_daily_loss_inr
-
-    @property
-    def MAX_ACCOUNT_DRAWDOWN_PCT(self) -> float:
-        return self.risk.max_drawdown_pct
-
-    @property
-    def MAX_SPREAD_PCT(self) -> float:
-        return self.risk.max_spread_pct
-
-    @property
-    def CIRCUIT_BUFFER_PCT(self) -> float:
-        return self.risk.circuit_buffer_pct
-
-    @property
-    def MIN_ADV_INR(self) -> float:
-        return self.risk.min_adv_inr
-
-    @property
-    def MARKET_START_ENTRY(self) -> str:
-        return self.risk.entry_window_start
-
-    @property
-    def MARKET_STOP_ENTRY(self) -> str:
-        return self.risk.entry_window_end
-
-    @property
-    def MANDATORY_SQUAREOFF(self) -> str:
-        return self.risk.mandatory_squareoff
-
-    @property
-    def TARGET_PROFIT_PCT(self) -> float:
-        return self.strategy.take_profit_pct
-
-    @property
-    def STOP_LOSS_PCT(self) -> float:
-        return self.strategy.stop_loss_pct
-
-    @property
-    def MAX_HOLDING_MINUTES(self) -> int:
-        return self.strategy.max_holding_minutes
-
-    @property
-    def MIN_ORDER_BOOK_IMBALANCE(self) -> float:
-        return self.strategy.min_order_book_imbalance
-
-    @property
-    def MIN_RELATIVE_VOLUME(self) -> float:
-        return self.strategy.min_relative_volume
-
-    @property
-    def MIN_CALIBRATED_PROBABILITY(self) -> float:
-        return self.strategy.min_calibrated_probability
-
-    @property
-    def MIN_QUALITY_SCORE(self) -> float:
-        return self.strategy.min_quality_score
-
-    @property
-    def BROKERAGE_PER_ORDER(self) -> float:
-        return self.costs.brokerage_per_order_flat
-
-    @property
-    def BROKERAGE_PER_ORDER_PCT(self) -> float:
-        return self.costs.brokerage_per_order_pct
-
-    @property
-    def STT_SELL_PCT(self) -> float:
-        return self.costs.stt_sell_pct
-
-    @property
-    def EXCHANGE_TURNOVER_PCT(self) -> float:
-        return self.costs.exchange_txn_pct
-
-    @property
-    def SEBI_PCT(self) -> float:
-        return self.costs.sebi_pct
-
-    @property
-    def STAMP_DUTY_BUY_PCT(self) -> float:
-        return self.costs.stamp_duty_buy_pct
-
-    @property
-    def GST_PCT(self) -> float:
-        return self.costs.gst_pct
 
 
 def load_config() -> TradingConfig:
     risk, r = load_risk_limits()
     costs, c = load_cost_model()
-    strategy, s = load_social_momentum_v1()
     runtime, rt = load_runtime()
-    return TradingConfig(risk=risk, costs=costs, strategy=strategy, runtime=runtime, sources=(r, c, s, rt))
+    return TradingConfig(risk=risk, costs=costs, runtime=runtime, sources=(r, c, rt))
 
 
 config = load_config()

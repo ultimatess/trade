@@ -29,7 +29,7 @@ class QuantTradingSystem:
         self.calibration_engine = CalibrationEngine()
         self.strategy = SocialMomentumV1()
         self.social_scanner = SocialMomentumScanner()
-        self.broker = IndianPaperBroker(initial_capital=config.STARTING_CAPITAL)
+        self.broker = IndianPaperBroker(initial_capital=config.runtime.starting_capital_inr)
         self.is_running = True
 
     def run_single_cycle(
@@ -51,7 +51,7 @@ class QuantTradingSystem:
         logger.info(f"--- Cycle Iteration: {symbol} @ ₹{current_price:.2f} ({simulated_time_str} IST) ---")
 
         # Step 1: EOD Mandatory Square-Off Check
-        if simulated_time_str >= config.MANDATORY_SQUAREOFF:
+        if simulated_time_str >= config.risk.mandatory_squareoff:
             logger.warning("15:10 IST MANDATORY EOD SQUARE-OFF REACHED. Flattening open exposure.")
             signal_ids = {s: self.broker.signal_id_for(s) for s in self.broker.positions}
             for trade in self.broker.flatten_all(

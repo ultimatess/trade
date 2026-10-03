@@ -16,25 +16,25 @@ class IndianTaxCalculator:
         total_turnover = turnover_buy + turnover_sell
 
         # 1. Brokerage: min(flat ₹20, 0.03% of leg turnover) per executed leg
-        brokerage = min(config.BROKERAGE_PER_ORDER, turnover_buy * config.BROKERAGE_PER_ORDER_PCT) + min(
-            config.BROKERAGE_PER_ORDER, turnover_sell * config.BROKERAGE_PER_ORDER_PCT
-        )
+        brokerage = min(
+            config.costs.brokerage_per_order_flat, turnover_buy * config.costs.brokerage_per_order_pct
+        ) + min(config.costs.brokerage_per_order_flat, turnover_sell * config.costs.brokerage_per_order_pct)
 
         # 2. STT: 0.025% on sell turnover for equity intraday
-        stt = turnover_sell * config.STT_SELL_PCT
+        stt = turnover_sell * config.costs.stt_sell_pct
 
         # 3. Exchange Turnover Charges: 0.00297% on NSE
-        exchange_charges = total_turnover * config.EXCHANGE_TURNOVER_PCT
+        exchange_charges = total_turnover * config.costs.exchange_txn_pct
 
         # 4. SEBI Charges: ₹10 / crore (0.0001%)
-        sebi_charges = total_turnover * config.SEBI_PCT
+        sebi_charges = total_turnover * config.costs.sebi_pct
 
         # 5. Stamp Duty: 0.003% on buy turnover only
-        stamp_duty = turnover_buy * config.STAMP_DUTY_BUY_PCT
+        stamp_duty = turnover_buy * config.costs.stamp_duty_buy_pct
 
         # 6. GST: 18% on (Brokerage + Exchange Charges + SEBI Charges)
         taxable_services = brokerage + exchange_charges + sebi_charges
-        gst = taxable_services * config.GST_PCT
+        gst = taxable_services * config.costs.gst_pct
 
         total_charges = brokerage + stt + exchange_charges + sebi_charges + stamp_duty + gst
         gross_pnl = (sell_price - buy_price) * quantity

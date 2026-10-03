@@ -21,11 +21,11 @@ def config_copy(tmp_path, monkeypatch):
 
 def test_repo_config_loads_and_matches_legacy_values():
     c = cfg.load_config()
-    assert c.MAX_CAPITAL_PER_TRADE == 20_000.0
-    assert c.MAX_CONCURRENT_POSITIONS == 2
-    assert c.MAX_DAILY_LOSS == 2_000.0
-    assert c.MAX_ACCOUNT_DRAWDOWN_PCT == 0.06  # operator decision 2026-10-03
-    assert c.STARTING_CAPITAL == 100_000.0
+    assert c.risk.max_order_notional_inr == 20_000.0
+    assert c.risk.max_open_positions == 2
+    assert c.risk.max_daily_loss_inr == 2_000.0
+    assert c.risk.max_drawdown_pct == 0.06  # operator decision 2026-10-03
+    assert c.runtime.starting_capital_inr == 100_000.0
     assert c.risk.uncalibrated_kelly_policy == "fixed_notional"  # D-003/D-004
     assert c.risk.fixed_notional_inr == 20_000.0
     assert all(len(s.sha256) == 64 for s in c.sources)

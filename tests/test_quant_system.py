@@ -12,7 +12,6 @@ import unittest
 from tests import factories
 from trade.backtesting.engine import BacktestRunner
 from trade.brokers.paper import IndianPaperBroker
-from trade.core.config import config
 from trade.core.execution.charges import IndianTaxCalculator
 from trade.core.risk.engine import RiskEngine
 from trade.core.strategy.contract import Observation
@@ -80,7 +79,7 @@ class TestQuantSystem(unittest.TestCase):
         decision = SocialMomentumV1().on_observation(obs)
         self.assertEqual(len(decision.signals), 1)
         s = decision.signals[0]
-        self.assertGreaterEqual(s.confidence, config.MIN_CALIBRATED_PROBABILITY)
+        self.assertGreaterEqual(s.confidence, SocialMomentumV1().spec.parameters["min_p_win"])
         self.assertLessEqual(s.requested_fraction, 0.20)
         self.assertIsNone(s.probability)  # uncalibrated: no probability claimed
 

@@ -26,7 +26,7 @@ IST = ZoneInfo("Asia/Kolkata")
 class IndianPaperBroker:
     """Deterministic paper execution environment for Indian Equities."""
 
-    def __init__(self, initial_capital: float = config.STARTING_CAPITAL):
+    def __init__(self, initial_capital: float = config.runtime.starting_capital_inr):
         self.cash: float = initial_capital
         self.positions: dict[str, Position] = {}
         self.open_orders: dict[str, Order] = {}
@@ -154,9 +154,7 @@ class IndianPaperBroker:
             exit_price = pos.stop_loss_price * 0.9995
 
         # 3. Time Invalidation (35 mins elapsed without hitting TP/SL)
-        elif (tick_time - pos.entry_time) >= self.position_meta.get(symbol, {}).get(
-            "max_holding_s", config.MAX_HOLDING_MINUTES * 60
-        ):
+        elif (tick_time - pos.entry_time) >= self.position_meta[symbol]["max_holding_s"]:
             exit_reason = "TIMEOUT"
             exit_price = tick_price
 

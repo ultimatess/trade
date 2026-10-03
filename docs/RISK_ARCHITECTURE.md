@@ -23,6 +23,8 @@ class RiskDecision(BaseModel, frozen=True):
     evaluated_at: datetime
 ```
 
+> **Implementation status (Phase 2):** `RiskEngine.evaluate(OrderIntent, PortfolioView, MarketSnapshot, session_time)` and `RiskEngine.check_portfolio(PortfolioView)` (run every cycle) in `src/trade/core/risk/engine.py`. Reason codes implemented: `KILL_SWITCH_ACTIVE, DAILY_LOSS_LIMIT, MAX_DRAWDOWN, OUTSIDE_TRADING_WINDOW, MAX_POSITIONS, DUPLICATE_POSITION, NEAR_UPPER_CIRCUIT, NEAR_LOWER_CIRCUIT, SPREAD_TOO_WIDE, INSUFFICIENT_ADV, ORDER_NOTIONAL_LIMIT, MISSING_INPUT, RISK_ENGINE_ERROR`. Not yet implemented: stale-data age, order rate, leverage, concentration, correlated exposure, strategy approval/lifecycle, reconciliation, clock validity, scoped kill switches (strategy/symbol/broker/order). The daily loss limit is **net** (realized + unrealized) and resets each IST session.
+
 ## 2. Fail-Closed Contract
 
 - `evaluate()` is wrapped so that **any exception results in `DENY(RISK_ENGINE_ERROR)`**.

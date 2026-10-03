@@ -55,6 +55,8 @@ cost_model: nse_intraday@1
 
 ## 2. Python Interface
 
+> **Implementation status (Phase 2):** implemented in `src/trade/core/strategy/contract.py` with frozen dataclasses (Pydantic is deferred until agent JSON schemas are needed). The strategy input is an `Observation` (symbol, `as_of`, session time, market snapshot, optional social signal). It rejects any input stamped after `as_of`. The output is a `StrategyDecision` (signals, plus machine-readable rejection codes and diagnostics). v1 is stateless, so `StrategyState` is not implemented yet. Bracket offsets (`take_profit_pct`, `stop_loss_pct`) travel with the signal and are anchored to the fill price by execution.
+
 ```python
 class Strategy(ABC):
     spec: StrategySpec                     # parsed + validated strategy.yaml

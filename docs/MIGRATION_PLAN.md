@@ -125,3 +125,17 @@ Deferred: D-005 (brokerage model depends on the operator's broker), D-010 (Reddi
 4. Contract tests: determinism, no I/O in `on_observation`, signal validation, fingerprint pinning of v1.
 5. Risk tests: every order-level limit has an allow and a deny case; any exception gives DENY; drawdown and daily-loss breaches trigger the kill switch and flatten.
 6. `make ci` is green and the GitHub Actions run is green.
+
+### Phase 2 Status: COMPLETE
+
+| Step | Commit summary | Golden effect |
+|---|---|---|
+| 2.1 | Contract + Strategy #001 v1; frozen legacy oracle; 450-case parity | none |
+| 2.2 | Shared pipeline, order-level risk, Sizer, intent-based broker | none (end-to-end parity) |
+| 2.3 | D-001 cash accounting | broker, backtest, paper_cycle |
+| 2.4 | D-002 forecast/outcome pairing | paper_cycle Brier only |
+| 2.5 | D-006 drawdown 6%, net daily loss, session reset, flatten | none (limits not reached) |
+| 2.6 | D-003/D-004 no Kelly for uncalibrated → fixed ₹20,000 | backtest, paper_cycle |
+| 2.7 | Legacy config facade removed; fake Brier value removed from the terminal monitor; docs | none |
+
+Before/after metrics for every golden change: `tests/golden/CHANGELOG.md`. Still open: D-005 (operator's broker), D-009, D-010 (Social Momentum v2), D-012.

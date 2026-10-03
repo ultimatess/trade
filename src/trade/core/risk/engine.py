@@ -22,6 +22,7 @@ from trade.core.market_state.models import MarketSnapshot
 from trade.core.portfolio.view import PortfolioView
 
 logger = logging.getLogger("RiskEngine")
+KILL_LOCKFILE_NAME = "trading.lock"
 
 # Reason codes (machine-readable; never free text)
 KILL_SWITCH_ACTIVE = "KILL_SWITCH_ACTIVE"
@@ -58,7 +59,7 @@ class RiskEngine:
         self.limits = limits or config.risk
         self.limits_hash = hashlib.sha256(repr(self.limits).encode()).hexdigest()[:16]
         # Absolute path: the kill switch must not depend on the working directory.
-        path = Path(lockfile_path) if lockfile_path else state_dir() / config.LOCKFILE_PATH
+        path = Path(lockfile_path) if lockfile_path else state_dir() / KILL_LOCKFILE_NAME
         self.lockfile_path = str(path.resolve())
         # In-memory halt survives a failed lockfile write; only an explicit clear resets it.
         self._halted_in_memory = False

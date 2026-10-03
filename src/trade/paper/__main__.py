@@ -14,7 +14,7 @@ def main() -> None:
     system = QuantTradingSystem()
     print("=" * 70)
     print("AUTONOMOUS QUANT TRADING SYSTEM - NSE INTRADAY")
-    print(f"Starting NAV: ₹{system.broker.total_equity:,.2f} | Max Loss Gate: ₹{config.MAX_DAILY_LOSS:,.2f}")
+    print(f"Starting NAV: ₹{system.broker.total_equity:,.2f} | Max Loss Gate: ₹{config.risk.max_daily_loss_inr:,.2f}")
     print("=" * 70)
 
     # Run demonstration cycle with a high-conviction momentum setup

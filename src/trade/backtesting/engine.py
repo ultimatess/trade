@@ -29,7 +29,7 @@ class BacktestMetrics:
     """Computes comprehensive quantitative performance and statistical significance."""
 
     @staticmethod
-    def calculate(trades: list[Any], starting_capital: float = config.STARTING_CAPITAL) -> dict[str, Any]:
+    def calculate(trades: list[Any], starting_capital: float = config.runtime.starting_capital_inr) -> dict[str, Any]:
         if not trades:
             return {
                 "total_trades": 0,
@@ -65,7 +65,7 @@ class BacktestMetrics:
         max_drawdown_pct = max_dd * 100.0
 
         # Mean and Standard Deviation of trade returns
-        returns = [p / config.MAX_CAPITAL_PER_TRADE for p in pnls]
+        returns = [p / config.risk.max_order_notional_inr for p in pnls]
         mean_ret = sum(returns) / total_trades
         variance = sum((r - mean_ret) ** 2 for r in returns) / (total_trades - 1) if total_trades > 1 else 0.0001
         std_ret = math.sqrt(max(1e-8, variance))
@@ -122,7 +122,7 @@ class BacktestRunner:
     def _run(self, risk_engine: RiskEngine, total_candles: int) -> dict[str, Any]:
 
         pipeline = DecisionPipeline(SocialMomentumV1(), risk_engine)
-        broker = IndianPaperBroker(initial_capital=config.STARTING_CAPITAL)
+        broker = IndianPaperBroker(initial_capital=config.runtime.starting_capital_inr)
 
         base_price = 1450.0  # Typical NSE mid-large cap (e.g., INFY / RELIANCE range)
         current_price = base_price
@@ -195,5 +195,5 @@ class BacktestRunner:
             current_prices={s: current_price for s in symbols}, current_time=simulated_time, reason="BACKTEST_EOD"
         )
 
-        metrics = BacktestMetrics.calculate(broker.trade_history, starting_capital=config.STARTING_CAPITAL)
+        metrics = BacktestMetrics.calculate(broker.trade_history, starting_capital=config.runtime.starting_capital_inr)
         return metrics

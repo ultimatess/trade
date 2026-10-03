@@ -40,7 +40,7 @@ class SystemStateHolder:
         self.calibration_engine = CalibrationEngine()
         self.strategy = SocialMomentumV1()
         self.social_scanner = SocialMomentumScanner()
-        self.broker = IndianPaperBroker(initial_capital=config.STARTING_CAPITAL)
+        self.broker = IndianPaperBroker(initial_capital=config.runtime.starting_capital_inr)
 
         self.bot_running = False
         self.bot_thread: threading.Thread | None = None
@@ -97,11 +97,11 @@ class SystemStateHolder:
                 "kill_switch_active": kill_active,
                 "bot_running": self.bot_running,
                 "total_equity": round(self.broker.total_equity, 2),
-                "starting_capital": config.STARTING_CAPITAL,
+                "starting_capital": config.runtime.starting_capital_inr,
                 "cash": round(self.broker.cash, 2),
                 "daily_realized_pnl": round(self.broker.daily_realized_pnl, 2),
                 "daily_realized_loss": round(self.broker.daily_realized_loss, 2),
-                "max_daily_loss": config.MAX_DAILY_LOSS,
+                "max_daily_loss": config.risk.max_daily_loss_inr,
                 "brier_score": round(self.calibration_engine.compute_brier_score(), 4),
                 "positions": positions_data,
                 "trades": trades_data,
@@ -215,7 +215,7 @@ class SystemStateHolder:
 
     def reset_account(self) -> None:
         with self.lock:
-            self.broker = IndianPaperBroker(initial_capital=config.STARTING_CAPITAL)
+            self.broker = IndianPaperBroker(initial_capital=config.runtime.starting_capital_inr)
             self.calibration_engine = CalibrationEngine()
             self.recent_signals.clear()
             self.log("Account reset to starting equity ₹1,00,000. Clean slate initialized.")
@@ -236,7 +236,11 @@ class SystemStateHolder:
                 )
                 self.bot_thread.start()
 
-        self.log("Autonomous trading loop STARTED." if is_active else "Autonomous trading loop STOPPED.")
+        self.log(
+            "Synthetic demo loop STARTED (random prices and template posts; not market data)."
+            if is_active
+            else "Synthetic demo loop STOPPED."
+        )
         return is_active
 
     def _background_worker(self, generation: int) -> None:

@@ -2,7 +2,7 @@
 
 A local-first system for researching, validating and paper-trading systematic strategies on Indian equities (NSE). It is being built toward a full research → validation → guarded-trading platform. See [docs/TARGET_ARCHITECTURE.md](docs/TARGET_ARCHITECTURE.md) and [docs/MIGRATION_PLAN.md](docs/MIGRATION_PLAN.md).
 
-**Status: Phase 1 (foundation).** Paper and demo only. No broker connectivity, and no live trading.
+**Status: Phase 2 (strategy contract) complete.** Paper and demo only. No broker connectivity, and no live trading.
 
 ## Core Rule
 > **AI may propose. Code must decide. Risk always has veto power.**
@@ -11,9 +11,9 @@ A local-first system for researching, validating and paper-trading systematic st
 ## What Exists Today
 | Component | State |
 |---|---|
-| Strategy #001 — Social Momentum v1 | Hand-weighted scorer (`src/trade/strategies/social_momentum/`). Weights and calibration table are **hand-set and unvalidated** |
-| Risk engine | Pre-trade gates + fail-closed kill switch (`src/trade/core/risk/`) |
-| Paper broker | In-memory simulator with fixed slippage and NSE charges. **Known defect D-001** (cash accounting) |
+| Strategy #001 — Social Momentum v1 | Implements the Strategy contract (`src/trade/strategies/social_momentum/v1/`); parity-tested against the legacy code; pinned by fingerprint. Weights are **hand-set and unvalidated**; uncalibrated, so it is sized at a fixed ₹20,000 |
+| Risk engine | Evaluates every sized order (ALLOW/DENY with reason codes); 6% drawdown and net daily-loss halts with flatten; fail-closed kill switch (`src/trade/core/risk/`) |
+| Paper broker | In-memory simulator executing risk-approved order intents; fixed slippage and NSE charges; cash-funded |
 | Legacy backtest | 500 synthetic candles from a **circular generator**: labelled *NOT EVIDENCE* (see [CURRENT_STATE §6](docs/CURRENT_STATE.md)) |
 | Dashboard | Loopback-only web UI with operator token |
 | Social recorder | Records real Reddit posts forward for future validation (needs Reddit OAuth credentials) |
