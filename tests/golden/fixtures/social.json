@@ -1,0 +1,42 @@
+[
+ {
+  "mentions_count": 3,
+  "spam_cluster_score": 0.0,
+  "symbol": "TATASTEEL",
+  "timestamp": 1700000000.0,
+  "unique_verified_ratio": 0.9,
+  "velocity_zscore": 2.0
+ },
+ {
+  "mentions_count": 4,
+  "spam_cluster_score": 0.5,
+  "symbol": "TATASTEEL",
+  "timestamp": 1700000600.0,
+  "unique_verified_ratio": 0.65,
+  "velocity_zscore": 6.0
+ },
+ {
+  "mentions_count": 0,
+  "spam_cluster_score": 0.0,
+  "symbol": "TATASTEEL",
+  "timestamp": 1700001200.0,
+  "unique_verified_ratio": 0.8,
+  "velocity_zscore": 6.0
+ },
+ {
+  "mentions_count": 10,
+  "spam_cluster_score": 0.9,
+  "symbol": "RELIANCE",
+  "timestamp": 1700004000.0,
+  "unique_verified_ratio": 0.45,
+  "velocity_zscore": 9.0
+ },
+ {
+  "mentions_count": 2,
+  "spam_cluster_score": 0.0,
+  "symbol": "TATASTEEL",
+  "timestamp": 1700090000.0,
+  "unique_verified_ratio": 0.9,
+  "velocity_zscore": 1.0
+ }
+]

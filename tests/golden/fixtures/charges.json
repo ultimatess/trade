@@ -1,0 +1,1902 @@
+[
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 0.01,
+   "exchange_charges": 0.0,
+   "gross_pnl": -0.07,
+   "gst": 0.0,
+   "net_pnl": -0.08,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.0,
+   "stamp_duty": 0.0,
+   "stt": 0.0,
+   "total_charges": 0.01,
+   "turnover_buy": 10.0,
+   "turnover_sell": 9.93
+  },
+  "qty": 1,
+  "sell": 9.93
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 0.08,
+   "exchange_charges": 0.01,
+   "gross_pnl": -0.91,
+   "gst": 0.02,
+   "net_pnl": -1.05,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.0003,
+   "stamp_duty": 0.0,
+   "stt": 0.03,
+   "total_charges": 0.14,
+   "turnover_buy": 130.0,
+   "turnover_sell": 129.09
+  },
+  "qty": 13,
+  "sell": 9.93
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 1.2,
+   "exchange_charges": 0.12,
+   "gross_pnl": -14.0,
+   "gst": 0.24,
+   "net_pnl": -16.11,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.004,
+   "stamp_duty": 0.06,
+   "stt": 0.5,
+   "total_charges": 2.11,
+   "turnover_buy": 2000.0,
+   "turnover_sell": 1986.0
+  },
+  "qty": 200,
+  "sell": 9.93
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 5.98,
+   "exchange_charges": 0.59,
+   "gross_pnl": -70.0,
+   "gst": 1.19,
+   "net_pnl": -80.56,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.0199,
+   "stamp_duty": 0.3,
+   "stt": 2.48,
+   "total_charges": 10.56,
+   "turnover_buy": 10000.0,
+   "turnover_sell": 9930.0
+  },
+  "qty": 1000,
+  "sell": 9.93
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 0.01,
+   "exchange_charges": 0.0,
+   "gross_pnl": -0.07,
+   "gst": 0.0,
+   "net_pnl": -0.08,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.0,
+   "stamp_duty": 0.0,
+   "stt": 0.0,
+   "total_charges": 0.01,
+   "turnover_buy": 10.0,
+   "turnover_sell": 9.93
+  },
+  "qty": 1,
+  "sell": 9.93
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 0.08,
+   "exchange_charges": 0.01,
+   "gross_pnl": -0.91,
+   "gst": 0.02,
+   "net_pnl": -1.05,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.0003,
+   "stamp_duty": 0.0,
+   "stt": 0.03,
+   "total_charges": 0.14,
+   "turnover_buy": 130.0,
+   "turnover_sell": 129.09
+  },
+  "qty": 13,
+  "sell": 9.93
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 1.2,
+   "exchange_charges": 0.12,
+   "gross_pnl": -14.0,
+   "gst": 0.24,
+   "net_pnl": -16.11,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.004,
+   "stamp_duty": 0.06,
+   "stt": 0.5,
+   "total_charges": 2.11,
+   "turnover_buy": 2000.0,
+   "turnover_sell": 1986.0
+  },
+  "qty": 200,
+  "sell": 9.93
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 5.98,
+   "exchange_charges": 0.59,
+   "gross_pnl": -70.0,
+   "gst": 1.19,
+   "net_pnl": -80.56,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.0199,
+   "stamp_duty": 0.3,
+   "stt": 2.48,
+   "total_charges": 10.56,
+   "turnover_buy": 10000.0,
+   "turnover_sell": 9930.0
+  },
+  "qty": 1000,
+  "sell": 9.93
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 0.01,
+   "exchange_charges": 0.0,
+   "gross_pnl": 0.0,
+   "gst": 0.0,
+   "net_pnl": -0.01,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.0,
+   "stamp_duty": 0.0,
+   "stt": 0.0,
+   "total_charges": 0.01,
+   "turnover_buy": 10.0,
+   "turnover_sell": 10.0
+  },
+  "qty": 1,
+  "sell": 10.0
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 0.08,
+   "exchange_charges": 0.01,
+   "gross_pnl": 0.0,
+   "gst": 0.02,
+   "net_pnl": -0.14,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.0003,
+   "stamp_duty": 0.0,
+   "stt": 0.03,
+   "total_charges": 0.14,
+   "turnover_buy": 130.0,
+   "turnover_sell": 130.0
+  },
+  "qty": 13,
+  "sell": 10.0
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 1.2,
+   "exchange_charges": 0.12,
+   "gross_pnl": 0.0,
+   "gst": 0.24,
+   "net_pnl": -2.12,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.004,
+   "stamp_duty": 0.06,
+   "stt": 0.5,
+   "total_charges": 2.12,
+   "turnover_buy": 2000.0,
+   "turnover_sell": 2000.0
+  },
+  "qty": 200,
+  "sell": 10.0
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 6.0,
+   "exchange_charges": 0.59,
+   "gross_pnl": 0.0,
+   "gst": 1.19,
+   "net_pnl": -10.6,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.02,
+   "stamp_duty": 0.3,
+   "stt": 2.5,
+   "total_charges": 10.6,
+   "turnover_buy": 10000.0,
+   "turnover_sell": 10000.0
+  },
+  "qty": 1000,
+  "sell": 10.0
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 0.01,
+   "exchange_charges": 0.0,
+   "gross_pnl": 0.05,
+   "gst": 0.0,
+   "net_pnl": 0.04,
+   "net_roi_pct": 0.394,
+   "sebi_charges": 0.0,
+   "stamp_duty": 0.0,
+   "stt": 0.0,
+   "total_charges": 0.01,
+   "turnover_buy": 10.0,
+   "turnover_sell": 10.05
+  },
+  "qty": 1,
+  "sell": 10.05
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 0.08,
+   "exchange_charges": 0.01,
+   "gross_pnl": 0.65,
+   "gst": 0.02,
+   "net_pnl": 0.51,
+   "net_roi_pct": 0.394,
+   "sebi_charges": 0.0003,
+   "stamp_duty": 0.0,
+   "stt": 0.03,
+   "total_charges": 0.14,
+   "turnover_buy": 130.0,
+   "turnover_sell": 130.65
+  },
+  "qty": 13,
+  "sell": 10.05
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 1.2,
+   "exchange_charges": 0.12,
+   "gross_pnl": 10.0,
+   "gst": 0.24,
+   "net_pnl": 7.87,
+   "net_roi_pct": 0.394,
+   "sebi_charges": 0.004,
+   "stamp_duty": 0.06,
+   "stt": 0.5,
+   "total_charges": 2.13,
+   "turnover_buy": 2000.0,
+   "turnover_sell": 2010.0000000000002
+  },
+  "qty": 200,
+  "sell": 10.05
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 6.01,
+   "exchange_charges": 0.6,
+   "gross_pnl": 50.0,
+   "gst": 1.19,
+   "net_pnl": 39.36,
+   "net_roi_pct": 0.394,
+   "sebi_charges": 0.02,
+   "stamp_duty": 0.3,
+   "stt": 2.51,
+   "total_charges": 10.64,
+   "turnover_buy": 10000.0,
+   "turnover_sell": 10050.0
+  },
+  "qty": 1000,
+  "sell": 10.05
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 0.01,
+   "exchange_charges": 0.0,
+   "gross_pnl": 0.1,
+   "gst": 0.0,
+   "net_pnl": 0.09,
+   "net_roi_pct": 0.893,
+   "sebi_charges": 0.0,
+   "stamp_duty": 0.0,
+   "stt": 0.0,
+   "total_charges": 0.01,
+   "turnover_buy": 10.0,
+   "turnover_sell": 10.1
+  },
+  "qty": 1,
+  "sell": 10.1
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 0.08,
+   "exchange_charges": 0.01,
+   "gross_pnl": 1.3,
+   "gst": 0.02,
+   "net_pnl": 1.16,
+   "net_roi_pct": 0.893,
+   "sebi_charges": 0.0003,
+   "stamp_duty": 0.0,
+   "stt": 0.03,
+   "total_charges": 0.14,
+   "turnover_buy": 130.0,
+   "turnover_sell": 131.29999999999998
+  },
+  "qty": 13,
+  "sell": 10.1
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 1.21,
+   "exchange_charges": 0.12,
+   "gross_pnl": 20.0,
+   "gst": 0.24,
+   "net_pnl": 17.87,
+   "net_roi_pct": 0.893,
+   "sebi_charges": 0.004,
+   "stamp_duty": 0.06,
+   "stt": 0.51,
+   "total_charges": 2.13,
+   "turnover_buy": 2000.0,
+   "turnover_sell": 2020.0
+  },
+  "qty": 200,
+  "sell": 10.1
+ },
+ {
+  "buy": 10.0,
+  "charges": {
+   "brokerage": 6.03,
+   "exchange_charges": 0.6,
+   "gross_pnl": 100.0,
+   "gst": 1.2,
+   "net_pnl": 89.33,
+   "net_roi_pct": 0.893,
+   "sebi_charges": 0.0201,
+   "stamp_duty": 0.3,
+   "stt": 2.52,
+   "total_charges": 10.67,
+   "turnover_buy": 10000.0,
+   "turnover_sell": 10100.0
+  },
+  "qty": 1000,
+  "sell": 10.1
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 0.06,
+   "exchange_charges": 0.01,
+   "gross_pnl": -0.75,
+   "gst": 0.01,
+   "net_pnl": -0.86,
+   "net_roi_pct": -0.856,
+   "sebi_charges": 0.0002,
+   "stamp_duty": 0.0,
+   "stt": 0.02,
+   "total_charges": 0.11,
+   "turnover_buy": 100.0,
+   "turnover_sell": 99.25
+  },
+  "qty": 1,
+  "sell": 99.25
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 0.78,
+   "exchange_charges": 0.08,
+   "gross_pnl": -9.75,
+   "gst": 0.15,
+   "net_pnl": -11.12,
+   "net_roi_pct": -0.856,
+   "sebi_charges": 0.0026,
+   "stamp_duty": 0.04,
+   "stt": 0.32,
+   "total_charges": 1.37,
+   "turnover_buy": 1300.0,
+   "turnover_sell": 1290.25
+  },
+  "qty": 13,
+  "sell": 99.25
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 11.95,
+   "exchange_charges": 1.18,
+   "gross_pnl": -150.0,
+   "gst": 2.37,
+   "net_pnl": -171.11,
+   "net_roi_pct": -0.856,
+   "sebi_charges": 0.0398,
+   "stamp_duty": 0.6,
+   "stt": 4.96,
+   "total_charges": 21.11,
+   "turnover_buy": 20000.0,
+   "turnover_sell": 19850.0
+  },
+  "qty": 200,
+  "sell": 99.25
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 5.92,
+   "gross_pnl": -750.0,
+   "gst": 8.3,
+   "net_pnl": -832.23,
+   "net_roi_pct": -0.832,
+   "sebi_charges": 0.1992,
+   "stamp_duty": 3.0,
+   "stt": 24.81,
+   "total_charges": 82.23,
+   "turnover_buy": 100000.0,
+   "turnover_sell": 99250.0
+  },
+  "qty": 1000,
+  "sell": 99.25
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 0.06,
+   "exchange_charges": 0.01,
+   "gross_pnl": -0.7,
+   "gst": 0.01,
+   "net_pnl": -0.81,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.0002,
+   "stamp_duty": 0.0,
+   "stt": 0.02,
+   "total_charges": 0.11,
+   "turnover_buy": 100.0,
+   "turnover_sell": 99.3
+  },
+  "qty": 1,
+  "sell": 99.3
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 0.78,
+   "exchange_charges": 0.08,
+   "gross_pnl": -9.1,
+   "gst": 0.15,
+   "net_pnl": -10.47,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.0026,
+   "stamp_duty": 0.04,
+   "stt": 0.32,
+   "total_charges": 1.37,
+   "turnover_buy": 1300.0,
+   "turnover_sell": 1290.8999999999999
+  },
+  "qty": 13,
+  "sell": 99.3
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 11.96,
+   "exchange_charges": 1.18,
+   "gross_pnl": -140.0,
+   "gst": 2.37,
+   "net_pnl": -161.12,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.0399,
+   "stamp_duty": 0.6,
+   "stt": 4.96,
+   "total_charges": 21.12,
+   "turnover_buy": 20000.0,
+   "turnover_sell": 19860.0
+  },
+  "qty": 200,
+  "sell": 99.3
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 5.92,
+   "gross_pnl": -700.0,
+   "gst": 8.3,
+   "net_pnl": -782.24,
+   "net_roi_pct": -0.782,
+   "sebi_charges": 0.1993,
+   "stamp_duty": 3.0,
+   "stt": 24.82,
+   "total_charges": 82.24,
+   "turnover_buy": 100000.0,
+   "turnover_sell": 99300.0
+  },
+  "qty": 1000,
+  "sell": 99.3
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 0.06,
+   "exchange_charges": 0.01,
+   "gross_pnl": 0.0,
+   "gst": 0.01,
+   "net_pnl": -0.11,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.0002,
+   "stamp_duty": 0.0,
+   "stt": 0.03,
+   "total_charges": 0.11,
+   "turnover_buy": 100.0,
+   "turnover_sell": 100.0
+  },
+  "qty": 1,
+  "sell": 100.0
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 0.78,
+   "exchange_charges": 0.08,
+   "gross_pnl": 0.0,
+   "gst": 0.15,
+   "net_pnl": -1.38,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.0026,
+   "stamp_duty": 0.04,
+   "stt": 0.33,
+   "total_charges": 1.38,
+   "turnover_buy": 1300.0,
+   "turnover_sell": 1300.0
+  },
+  "qty": 13,
+  "sell": 100.0
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 12.0,
+   "exchange_charges": 1.19,
+   "gross_pnl": 0.0,
+   "gst": 2.38,
+   "net_pnl": -21.21,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.04,
+   "stamp_duty": 0.6,
+   "stt": 5.0,
+   "total_charges": 21.21,
+   "turnover_buy": 20000.0,
+   "turnover_sell": 20000.0
+  },
+  "qty": 200,
+  "sell": 100.0
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 5.94,
+   "gross_pnl": 0.0,
+   "gst": 8.31,
+   "net_pnl": -82.45,
+   "net_roi_pct": -0.082,
+   "sebi_charges": 0.2,
+   "stamp_duty": 3.0,
+   "stt": 25.0,
+   "total_charges": 82.45,
+   "turnover_buy": 100000.0,
+   "turnover_sell": 100000.0
+  },
+  "qty": 1000,
+  "sell": 100.0
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 0.06,
+   "exchange_charges": 0.01,
+   "gross_pnl": 0.5,
+   "gst": 0.01,
+   "net_pnl": 0.39,
+   "net_roi_pct": 0.394,
+   "sebi_charges": 0.0002,
+   "stamp_duty": 0.0,
+   "stt": 0.03,
+   "total_charges": 0.11,
+   "turnover_buy": 100.0,
+   "turnover_sell": 100.5
+  },
+  "qty": 1,
+  "sell": 100.5
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 0.78,
+   "exchange_charges": 0.08,
+   "gross_pnl": 6.5,
+   "gst": 0.16,
+   "net_pnl": 5.12,
+   "net_roi_pct": 0.394,
+   "sebi_charges": 0.0026,
+   "stamp_duty": 0.04,
+   "stt": 0.33,
+   "total_charges": 1.38,
+   "turnover_buy": 1300.0,
+   "turnover_sell": 1306.5
+  },
+  "qty": 13,
+  "sell": 100.5
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 12.03,
+   "exchange_charges": 1.19,
+   "gross_pnl": 100.0,
+   "gst": 2.39,
+   "net_pnl": 78.73,
+   "net_roi_pct": 0.394,
+   "sebi_charges": 0.0401,
+   "stamp_duty": 0.6,
+   "stt": 5.03,
+   "total_charges": 21.27,
+   "turnover_buy": 20000.0,
+   "turnover_sell": 20100.0
+  },
+  "qty": 200,
+  "sell": 100.5
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 5.95,
+   "gross_pnl": 500.0,
+   "gst": 8.31,
+   "net_pnl": 417.41,
+   "net_roi_pct": 0.417,
+   "sebi_charges": 0.2005,
+   "stamp_duty": 3.0,
+   "stt": 25.12,
+   "total_charges": 82.59,
+   "turnover_buy": 100000.0,
+   "turnover_sell": 100500.0
+  },
+  "qty": 1000,
+  "sell": 100.5
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 0.06,
+   "exchange_charges": 0.01,
+   "gross_pnl": 1.0,
+   "gst": 0.01,
+   "net_pnl": 0.89,
+   "net_roi_pct": 0.893,
+   "sebi_charges": 0.0002,
+   "stamp_duty": 0.0,
+   "stt": 0.03,
+   "total_charges": 0.11,
+   "turnover_buy": 100.0,
+   "turnover_sell": 101.0
+  },
+  "qty": 1,
+  "sell": 101.0
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 0.78,
+   "exchange_charges": 0.08,
+   "gross_pnl": 13.0,
+   "gst": 0.16,
+   "net_pnl": 11.61,
+   "net_roi_pct": 0.893,
+   "sebi_charges": 0.0026,
+   "stamp_duty": 0.04,
+   "stt": 0.33,
+   "total_charges": 1.39,
+   "turnover_buy": 1300.0,
+   "turnover_sell": 1313.0
+  },
+  "qty": 13,
+  "sell": 101.0
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 12.06,
+   "exchange_charges": 1.19,
+   "gross_pnl": 200.0,
+   "gst": 2.39,
+   "net_pnl": 178.66,
+   "net_roi_pct": 0.893,
+   "sebi_charges": 0.0402,
+   "stamp_duty": 0.6,
+   "stt": 5.05,
+   "total_charges": 21.34,
+   "turnover_buy": 20000.0,
+   "turnover_sell": 20200.0
+  },
+  "qty": 200,
+  "sell": 101.0
+ },
+ {
+  "buy": 100.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 5.97,
+   "gross_pnl": 1000.0,
+   "gst": 8.31,
+   "net_pnl": 917.27,
+   "net_roi_pct": 0.917,
+   "sebi_charges": 0.201,
+   "stamp_duty": 3.0,
+   "stt": 25.25,
+   "total_charges": 82.73,
+   "turnover_buy": 100000.0,
+   "turnover_sell": 101000.0
+  },
+  "qty": 1000,
+  "sell": 101.0
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 0.09,
+   "exchange_charges": 0.01,
+   "gross_pnl": -1.17,
+   "gst": 0.02,
+   "net_pnl": -1.34,
+   "net_roi_pct": -0.854,
+   "sebi_charges": 0.0003,
+   "stamp_duty": 0.0,
+   "stt": 0.04,
+   "total_charges": 0.17,
+   "turnover_buy": 156.4,
+   "turnover_sell": 155.23
+  },
+  "qty": 1,
+  "sell": 155.23
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 1.22,
+   "exchange_charges": 0.12,
+   "gross_pnl": -15.21,
+   "gst": 0.24,
+   "net_pnl": -17.36,
+   "net_roi_pct": -0.854,
+   "sebi_charges": 0.0041,
+   "stamp_duty": 0.06,
+   "stt": 0.5,
+   "total_charges": 2.15,
+   "turnover_buy": 2033.2,
+   "turnover_sell": 2017.9899999999998
+  },
+  "qty": 13,
+  "sell": 155.23
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 18.7,
+   "exchange_charges": 1.85,
+   "gross_pnl": -234.0,
+   "gst": 3.71,
+   "net_pnl": -267.02,
+   "net_roi_pct": -0.854,
+   "sebi_charges": 0.0623,
+   "stamp_duty": 0.94,
+   "stt": 7.76,
+   "total_charges": 33.02,
+   "turnover_buy": 31280.0,
+   "turnover_sell": 31045.999999999996
+  },
+  "qty": 200,
+  "sell": 155.23
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 9.26,
+   "gross_pnl": -1170.0,
+   "gst": 8.92,
+   "net_pnl": -1271.99,
+   "net_roi_pct": -0.813,
+   "sebi_charges": 0.3116,
+   "stamp_duty": 4.69,
+   "stt": 38.81,
+   "total_charges": 101.99,
+   "turnover_buy": 156400.0,
+   "turnover_sell": 155230.0
+  },
+  "qty": 1000,
+  "sell": 155.23
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 0.09,
+   "exchange_charges": 0.01,
+   "gross_pnl": -1.09,
+   "gst": 0.02,
+   "net_pnl": -1.26,
+   "net_roi_pct": -0.803,
+   "sebi_charges": 0.0003,
+   "stamp_duty": 0.0,
+   "stt": 0.04,
+   "total_charges": 0.17,
+   "turnover_buy": 156.4,
+   "turnover_sell": 155.31
+  },
+  "qty": 1,
+  "sell": 155.31
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 1.22,
+   "exchange_charges": 0.12,
+   "gross_pnl": -14.17,
+   "gst": 0.24,
+   "net_pnl": -16.32,
+   "net_roi_pct": -0.803,
+   "sebi_charges": 0.0041,
+   "stamp_duty": 0.06,
+   "stt": 0.5,
+   "total_charges": 2.15,
+   "turnover_buy": 2033.2,
+   "turnover_sell": 2019.03
+  },
+  "qty": 13,
+  "sell": 155.31
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 18.7,
+   "exchange_charges": 1.85,
+   "gross_pnl": -218.0,
+   "gst": 3.71,
+   "net_pnl": -251.03,
+   "net_roi_pct": -0.803,
+   "sebi_charges": 0.0623,
+   "stamp_duty": 0.94,
+   "stt": 7.77,
+   "total_charges": 33.03,
+   "turnover_buy": 31280.0,
+   "turnover_sell": 31062.0
+  },
+  "qty": 200,
+  "sell": 155.31
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 9.26,
+   "gross_pnl": -1090.0,
+   "gst": 8.92,
+   "net_pnl": -1192.01,
+   "net_roi_pct": -0.762,
+   "sebi_charges": 0.3117,
+   "stamp_duty": 4.69,
+   "stt": 38.83,
+   "total_charges": 102.01,
+   "turnover_buy": 156400.0,
+   "turnover_sell": 155310.0
+  },
+  "qty": 1000,
+  "sell": 155.31
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 0.09,
+   "exchange_charges": 0.01,
+   "gross_pnl": 0.0,
+   "gst": 0.02,
+   "net_pnl": -0.17,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.0003,
+   "stamp_duty": 0.0,
+   "stt": 0.04,
+   "total_charges": 0.17,
+   "turnover_buy": 156.4,
+   "turnover_sell": 156.4
+  },
+  "qty": 1,
+  "sell": 156.4
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 1.22,
+   "exchange_charges": 0.12,
+   "gross_pnl": 0.0,
+   "gst": 0.24,
+   "net_pnl": -2.16,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.0041,
+   "stamp_duty": 0.06,
+   "stt": 0.51,
+   "total_charges": 2.16,
+   "turnover_buy": 2033.2,
+   "turnover_sell": 2033.2
+  },
+  "qty": 13,
+  "sell": 156.4
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 18.77,
+   "exchange_charges": 1.86,
+   "gross_pnl": 0.0,
+   "gst": 3.72,
+   "net_pnl": -33.17,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.0626,
+   "stamp_duty": 0.94,
+   "stt": 7.82,
+   "total_charges": 33.17,
+   "turnover_buy": 31280.0,
+   "turnover_sell": 31280.0
+  },
+  "qty": 200,
+  "sell": 156.4
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 9.29,
+   "gross_pnl": 0.0,
+   "gst": 8.93,
+   "net_pnl": -102.32,
+   "net_roi_pct": -0.065,
+   "sebi_charges": 0.3128,
+   "stamp_duty": 4.69,
+   "stt": 39.1,
+   "total_charges": 102.32,
+   "turnover_buy": 156400.0,
+   "turnover_sell": 156400.0
+  },
+  "qty": 1000,
+  "sell": 156.4
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 0.09,
+   "exchange_charges": 0.01,
+   "gross_pnl": 0.78,
+   "gst": 0.02,
+   "net_pnl": 0.61,
+   "net_roi_pct": 0.392,
+   "sebi_charges": 0.0003,
+   "stamp_duty": 0.0,
+   "stt": 0.04,
+   "total_charges": 0.17,
+   "turnover_buy": 156.4,
+   "turnover_sell": 157.18
+  },
+  "qty": 1,
+  "sell": 157.18
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 1.22,
+   "exchange_charges": 0.12,
+   "gross_pnl": 10.14,
+   "gst": 0.24,
+   "net_pnl": 7.98,
+   "net_roi_pct": 0.392,
+   "sebi_charges": 0.0041,
+   "stamp_duty": 0.06,
+   "stt": 0.51,
+   "total_charges": 2.16,
+   "turnover_buy": 2033.2,
+   "turnover_sell": 2043.3400000000001
+  },
+  "qty": 13,
+  "sell": 157.18
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 18.81,
+   "exchange_charges": 1.86,
+   "gross_pnl": 156.0,
+   "gst": 3.73,
+   "net_pnl": 122.73,
+   "net_roi_pct": 0.392,
+   "sebi_charges": 0.0627,
+   "stamp_duty": 0.94,
+   "stt": 7.86,
+   "total_charges": 33.27,
+   "turnover_buy": 31280.0,
+   "turnover_sell": 31436.0
+  },
+  "qty": 200,
+  "sell": 157.18
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 9.31,
+   "gross_pnl": 780.0,
+   "gst": 8.93,
+   "net_pnl": 677.45,
+   "net_roi_pct": 0.433,
+   "sebi_charges": 0.3136,
+   "stamp_duty": 4.69,
+   "stt": 39.3,
+   "total_charges": 102.55,
+   "turnover_buy": 156400.0,
+   "turnover_sell": 157180.0
+  },
+  "qty": 1000,
+  "sell": 157.18
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 0.09,
+   "exchange_charges": 0.01,
+   "gross_pnl": 1.56,
+   "gst": 0.02,
+   "net_pnl": 1.39,
+   "net_roi_pct": 0.891,
+   "sebi_charges": 0.0003,
+   "stamp_duty": 0.0,
+   "stt": 0.04,
+   "total_charges": 0.17,
+   "turnover_buy": 156.4,
+   "turnover_sell": 157.96
+  },
+  "qty": 1,
+  "sell": 157.96
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 1.23,
+   "exchange_charges": 0.12,
+   "gross_pnl": 20.28,
+   "gst": 0.24,
+   "net_pnl": 18.11,
+   "net_roi_pct": 0.891,
+   "sebi_charges": 0.0041,
+   "stamp_duty": 0.06,
+   "stt": 0.51,
+   "total_charges": 2.17,
+   "turnover_buy": 2033.2,
+   "turnover_sell": 2053.48
+  },
+  "qty": 13,
+  "sell": 157.96
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 18.86,
+   "exchange_charges": 1.87,
+   "gross_pnl": 312.0,
+   "gst": 3.74,
+   "net_pnl": 278.63,
+   "net_roi_pct": 0.891,
+   "sebi_charges": 0.0629,
+   "stamp_duty": 0.94,
+   "stt": 7.9,
+   "total_charges": 33.37,
+   "turnover_buy": 31280.0,
+   "turnover_sell": 31592.0
+  },
+  "qty": 200,
+  "sell": 157.96
+ },
+ {
+  "buy": 156.4,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 9.34,
+   "gross_pnl": 1560.0,
+   "gst": 8.94,
+   "net_pnl": 1457.23,
+   "net_roi_pct": 0.932,
+   "sebi_charges": 0.3144,
+   "stamp_duty": 4.69,
+   "stt": 39.49,
+   "total_charges": 102.77,
+   "turnover_buy": 156400.0,
+   "turnover_sell": 157960.0
+  },
+  "qty": 1000,
+  "sell": 157.96
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 0.87,
+   "exchange_charges": 0.09,
+   "gross_pnl": -10.88,
+   "gst": 0.17,
+   "net_pnl": -12.41,
+   "net_roi_pct": -0.856,
+   "sebi_charges": 0.0029,
+   "stamp_duty": 0.04,
+   "stt": 0.36,
+   "total_charges": 1.53,
+   "turnover_buy": 1450.0,
+   "turnover_sell": 1439.12
+  },
+  "qty": 1,
+  "sell": 1439.12
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 11.27,
+   "exchange_charges": 1.12,
+   "gross_pnl": -141.44,
+   "gst": 2.24,
+   "net_pnl": -161.34,
+   "net_roi_pct": -0.856,
+   "sebi_charges": 0.0376,
+   "stamp_duty": 0.57,
+   "stt": 4.68,
+   "total_charges": 19.9,
+   "turnover_buy": 18850.0,
+   "turnover_sell": 18708.559999999998
+  },
+  "qty": 13,
+  "sell": 1439.12
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 17.16,
+   "gross_pnl": -2176.0,
+   "gst": 10.39,
+   "net_pnl": -2324.79,
+   "net_roi_pct": -0.802,
+   "sebi_charges": 0.5778,
+   "stamp_duty": 8.7,
+   "stt": 71.96,
+   "total_charges": 148.79,
+   "turnover_buy": 290000.0,
+   "turnover_sell": 287824.0
+  },
+  "qty": 200,
+  "sell": 1439.12
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 85.81,
+   "gross_pnl": -10880.0,
+   "gst": 23.17,
+   "net_pnl": -11435.14,
+   "net_roi_pct": -0.789,
+   "sebi_charges": 2.8891,
+   "stamp_duty": 43.5,
+   "stt": 359.78,
+   "total_charges": 555.14,
+   "turnover_buy": 1450000.0,
+   "turnover_sell": 1439120.0
+  },
+  "qty": 1000,
+  "sell": 1439.12
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 0.87,
+   "exchange_charges": 0.09,
+   "gross_pnl": -10.15,
+   "gst": 0.17,
+   "net_pnl": -11.68,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.0029,
+   "stamp_duty": 0.04,
+   "stt": 0.36,
+   "total_charges": 1.53,
+   "turnover_buy": 1450.0,
+   "turnover_sell": 1439.85
+  },
+  "qty": 1,
+  "sell": 1439.85
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 11.27,
+   "exchange_charges": 1.12,
+   "gross_pnl": -131.95,
+   "gst": 2.24,
+   "net_pnl": -151.86,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.0376,
+   "stamp_duty": 0.57,
+   "stt": 4.68,
+   "total_charges": 19.91,
+   "turnover_buy": 18850.0,
+   "turnover_sell": 18718.05
+  },
+  "qty": 13,
+  "sell": 1439.85
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 17.17,
+   "gross_pnl": -2030.0,
+   "gst": 10.39,
+   "net_pnl": -2178.83,
+   "net_roi_pct": -0.751,
+   "sebi_charges": 0.578,
+   "stamp_duty": 8.7,
+   "stt": 71.99,
+   "total_charges": 148.83,
+   "turnover_buy": 290000.0,
+   "turnover_sell": 287970.0
+  },
+  "qty": 200,
+  "sell": 1439.85
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 85.83,
+   "gross_pnl": -10150.0,
+   "gst": 23.17,
+   "net_pnl": -10705.35,
+   "net_roi_pct": -0.738,
+   "sebi_charges": 2.8899,
+   "stamp_duty": 43.5,
+   "stt": 359.96,
+   "total_charges": 555.35,
+   "turnover_buy": 1450000.0,
+   "turnover_sell": 1439850.0
+  },
+  "qty": 1000,
+  "sell": 1439.85
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 0.87,
+   "exchange_charges": 0.09,
+   "gross_pnl": 0.0,
+   "gst": 0.17,
+   "net_pnl": -1.54,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.0029,
+   "stamp_duty": 0.04,
+   "stt": 0.36,
+   "total_charges": 1.54,
+   "turnover_buy": 1450.0,
+   "turnover_sell": 1450.0
+  },
+  "qty": 1,
+  "sell": 1450.0
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 11.31,
+   "exchange_charges": 1.12,
+   "gross_pnl": 0.0,
+   "gst": 2.24,
+   "net_pnl": -19.99,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.0377,
+   "stamp_duty": 0.57,
+   "stt": 4.71,
+   "total_charges": 19.99,
+   "turnover_buy": 18850.0,
+   "turnover_sell": 18850.0
+  },
+  "qty": 13,
+  "sell": 1450.0
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 17.23,
+   "gross_pnl": 0.0,
+   "gst": 10.41,
+   "net_pnl": -149.41,
+   "net_roi_pct": -0.052,
+   "sebi_charges": 0.58,
+   "stamp_duty": 8.7,
+   "stt": 72.5,
+   "total_charges": 149.41,
+   "turnover_buy": 290000.0,
+   "turnover_sell": 290000.0
+  },
+  "qty": 200,
+  "sell": 1450.0
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 86.13,
+   "gross_pnl": 0.0,
+   "gst": 23.23,
+   "net_pnl": -558.26,
+   "net_roi_pct": -0.039,
+   "sebi_charges": 2.9,
+   "stamp_duty": 43.5,
+   "stt": 362.5,
+   "total_charges": 558.26,
+   "turnover_buy": 1450000.0,
+   "turnover_sell": 1450000.0
+  },
+  "qty": 1000,
+  "sell": 1450.0
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 0.87,
+   "exchange_charges": 0.09,
+   "gross_pnl": 7.25,
+   "gst": 0.17,
+   "net_pnl": 5.71,
+   "net_roi_pct": 0.394,
+   "sebi_charges": 0.0029,
+   "stamp_duty": 0.04,
+   "stt": 0.36,
+   "total_charges": 1.54,
+   "turnover_buy": 1450.0,
+   "turnover_sell": 1457.25
+  },
+  "qty": 1,
+  "sell": 1457.25
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 11.34,
+   "exchange_charges": 1.12,
+   "gross_pnl": 94.25,
+   "gst": 2.25,
+   "net_pnl": 74.2,
+   "net_roi_pct": 0.394,
+   "sebi_charges": 0.0378,
+   "stamp_duty": 0.57,
+   "stt": 4.74,
+   "total_charges": 20.05,
+   "turnover_buy": 18850.0,
+   "turnover_sell": 18944.25
+  },
+  "qty": 13,
+  "sell": 1457.25
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 17.27,
+   "gross_pnl": 1450.0,
+   "gst": 10.41,
+   "net_pnl": 1300.17,
+   "net_roi_pct": 0.448,
+   "sebi_charges": 0.5815,
+   "stamp_duty": 8.7,
+   "stt": 72.86,
+   "total_charges": 149.83,
+   "turnover_buy": 290000.0,
+   "turnover_sell": 291450.0
+  },
+  "qty": 200,
+  "sell": 1457.25
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 86.35,
+   "gross_pnl": 7250.0,
+   "gst": 23.27,
+   "net_pnl": 6689.67,
+   "net_roi_pct": 0.461,
+   "sebi_charges": 2.9072,
+   "stamp_duty": 43.5,
+   "stt": 364.31,
+   "total_charges": 560.33,
+   "turnover_buy": 1450000.0,
+   "turnover_sell": 1457250.0
+  },
+  "qty": 1000,
+  "sell": 1457.25
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 0.87,
+   "exchange_charges": 0.09,
+   "gross_pnl": 14.5,
+   "gst": 0.17,
+   "net_pnl": 12.95,
+   "net_roi_pct": 0.893,
+   "sebi_charges": 0.0029,
+   "stamp_duty": 0.04,
+   "stt": 0.37,
+   "total_charges": 1.55,
+   "turnover_buy": 1450.0,
+   "turnover_sell": 1464.5
+  },
+  "qty": 1,
+  "sell": 1464.5
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 11.37,
+   "exchange_charges": 1.13,
+   "gross_pnl": 188.5,
+   "gst": 2.26,
+   "net_pnl": 168.39,
+   "net_roi_pct": 0.893,
+   "sebi_charges": 0.0379,
+   "stamp_duty": 0.57,
+   "stt": 4.76,
+   "total_charges": 20.11,
+   "turnover_buy": 18850.0,
+   "turnover_sell": 19038.5
+  },
+  "qty": 13,
+  "sell": 1464.5
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 17.31,
+   "gross_pnl": 2900.0,
+   "gst": 10.42,
+   "net_pnl": 2749.76,
+   "net_roi_pct": 0.948,
+   "sebi_charges": 0.5829,
+   "stamp_duty": 8.7,
+   "stt": 73.23,
+   "total_charges": 150.24,
+   "turnover_buy": 290000.0,
+   "turnover_sell": 292900.0
+  },
+  "qty": 200,
+  "sell": 1464.5
+ },
+ {
+  "buy": 1450.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 86.56,
+   "gross_pnl": 14500.0,
+   "gst": 23.31,
+   "net_pnl": 13937.59,
+   "net_roi_pct": 0.961,
+   "sebi_charges": 2.9145,
+   "stamp_duty": 43.5,
+   "stt": 366.12,
+   "total_charges": 562.41,
+   "turnover_buy": 1450000.0,
+   "turnover_sell": 1464500.0
+  },
+  "qty": 1000,
+  "sell": 1464.5
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 1.48,
+   "exchange_charges": 0.15,
+   "gross_pnl": -18.6,
+   "gst": 0.29,
+   "net_pnl": -21.22,
+   "net_roi_pct": -0.856,
+   "sebi_charges": 0.0049,
+   "stamp_duty": 0.07,
+   "stt": 0.62,
+   "total_charges": 2.62,
+   "turnover_buy": 2480.0,
+   "turnover_sell": 2461.4
+  },
+  "qty": 1,
+  "sell": 2461.4
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 19.27,
+   "exchange_charges": 1.91,
+   "gross_pnl": -241.8,
+   "gst": 3.82,
+   "net_pnl": -275.83,
+   "net_roi_pct": -0.856,
+   "sebi_charges": 0.0642,
+   "stamp_duty": 0.97,
+   "stt": 8.0,
+   "total_charges": 34.03,
+   "turnover_buy": 32240.0,
+   "turnover_sell": 31998.2
+  },
+  "qty": 13,
+  "sell": 2461.4
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 29.35,
+   "gross_pnl": -3720.0,
+   "gst": 12.66,
+   "net_pnl": -3940.95,
+   "net_roi_pct": -0.795,
+   "sebi_charges": 0.9883,
+   "stamp_duty": 14.88,
+   "stt": 123.07,
+   "total_charges": 220.95,
+   "turnover_buy": 496000.0,
+   "turnover_sell": 492280.0
+  },
+  "qty": 200,
+  "sell": 2461.4
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 146.76,
+   "gross_pnl": -18600.0,
+   "gst": 34.51,
+   "net_pnl": -19515.96,
+   "net_roi_pct": -0.787,
+   "sebi_charges": 4.9414,
+   "stamp_duty": 74.4,
+   "stt": 615.35,
+   "total_charges": 915.96,
+   "turnover_buy": 2480000.0,
+   "turnover_sell": 2461400.0
+  },
+  "qty": 1000,
+  "sell": 2461.4
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 1.48,
+   "exchange_charges": 0.15,
+   "gross_pnl": -17.36,
+   "gst": 0.29,
+   "net_pnl": -19.98,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.0049,
+   "stamp_duty": 0.07,
+   "stt": 0.62,
+   "total_charges": 2.62,
+   "turnover_buy": 2480.0,
+   "turnover_sell": 2462.64
+  },
+  "qty": 1,
+  "sell": 2462.64
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 19.28,
+   "exchange_charges": 1.91,
+   "gross_pnl": -225.68,
+   "gst": 3.82,
+   "net_pnl": -259.72,
+   "net_roi_pct": -0.806,
+   "sebi_charges": 0.0643,
+   "stamp_duty": 0.97,
+   "stt": 8.0,
+   "total_charges": 34.04,
+   "turnover_buy": 32240.0,
+   "turnover_sell": 32014.32
+  },
+  "qty": 13,
+  "sell": 2462.64
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 29.36,
+   "gross_pnl": -3472.0,
+   "gst": 12.66,
+   "net_pnl": -3693.02,
+   "net_roi_pct": -0.745,
+   "sebi_charges": 0.9885,
+   "stamp_duty": 14.88,
+   "stt": 123.13,
+   "total_charges": 221.02,
+   "turnover_buy": 496000.0,
+   "turnover_sell": 492528.0
+  },
+  "qty": 200,
+  "sell": 2462.64
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 146.8,
+   "gross_pnl": -17360.0,
+   "gst": 34.51,
+   "net_pnl": -18276.31,
+   "net_roi_pct": -0.737,
+   "sebi_charges": 4.9426,
+   "stamp_duty": 74.4,
+   "stt": 615.66,
+   "total_charges": 916.31,
+   "turnover_buy": 2480000.0,
+   "turnover_sell": 2462640.0
+  },
+  "qty": 1000,
+  "sell": 2462.64
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 1.49,
+   "exchange_charges": 0.15,
+   "gross_pnl": 0.0,
+   "gst": 0.3,
+   "net_pnl": -2.63,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.005,
+   "stamp_duty": 0.07,
+   "stt": 0.62,
+   "total_charges": 2.63,
+   "turnover_buy": 2480.0,
+   "turnover_sell": 2480.0
+  },
+  "qty": 1,
+  "sell": 2480.0
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 19.34,
+   "exchange_charges": 1.92,
+   "gross_pnl": 0.0,
+   "gst": 3.84,
+   "net_pnl": -34.19,
+   "net_roi_pct": -0.106,
+   "sebi_charges": 0.0645,
+   "stamp_duty": 0.97,
+   "stt": 8.06,
+   "total_charges": 34.19,
+   "turnover_buy": 32240.0,
+   "turnover_sell": 32240.0
+  },
+  "qty": 13,
+  "sell": 2480.0
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 29.46,
+   "gross_pnl": 0.0,
+   "gst": 12.68,
+   "net_pnl": -222.02,
+   "net_roi_pct": -0.045,
+   "sebi_charges": 0.992,
+   "stamp_duty": 14.88,
+   "stt": 124.0,
+   "total_charges": 222.02,
+   "turnover_buy": 496000.0,
+   "turnover_sell": 496000.0
+  },
+  "qty": 200,
+  "sell": 2480.0
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 147.31,
+   "gross_pnl": 0.0,
+   "gst": 34.61,
+   "net_pnl": -921.28,
+   "net_roi_pct": -0.037,
+   "sebi_charges": 4.96,
+   "stamp_duty": 74.4,
+   "stt": 620.0,
+   "total_charges": 921.28,
+   "turnover_buy": 2480000.0,
+   "turnover_sell": 2480000.0
+  },
+  "qty": 1000,
+  "sell": 2480.0
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 1.49,
+   "exchange_charges": 0.15,
+   "gross_pnl": 12.4,
+   "gst": 0.3,
+   "net_pnl": 9.76,
+   "net_roi_pct": 0.394,
+   "sebi_charges": 0.005,
+   "stamp_duty": 0.07,
+   "stt": 0.62,
+   "total_charges": 2.64,
+   "turnover_buy": 2480.0,
+   "turnover_sell": 2492.4
+  },
+  "qty": 1,
+  "sell": 2492.4
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 19.39,
+   "exchange_charges": 1.92,
+   "gross_pnl": 161.2,
+   "gst": 3.85,
+   "net_pnl": 126.91,
+   "net_roi_pct": 0.394,
+   "sebi_charges": 0.0646,
+   "stamp_duty": 0.97,
+   "stt": 8.1,
+   "total_charges": 34.29,
+   "turnover_buy": 32240.0,
+   "turnover_sell": 32401.2
+  },
+  "qty": 13,
+  "sell": 2492.4
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 29.54,
+   "gross_pnl": 2480.0,
+   "gst": 12.7,
+   "net_pnl": 2257.27,
+   "net_roi_pct": 0.455,
+   "sebi_charges": 0.9945,
+   "stamp_duty": 14.88,
+   "stt": 124.62,
+   "total_charges": 222.73,
+   "turnover_buy": 496000.0,
+   "turnover_sell": 498480.0
+  },
+  "qty": 200,
+  "sell": 2492.4
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 147.68,
+   "gross_pnl": 12400.0,
+   "gst": 34.68,
+   "net_pnl": 11475.17,
+   "net_roi_pct": 0.463,
+   "sebi_charges": 4.9724,
+   "stamp_duty": 74.4,
+   "stt": 623.1,
+   "total_charges": 924.83,
+   "turnover_buy": 2480000.0,
+   "turnover_sell": 2492400.0
+  },
+  "qty": 1000,
+  "sell": 2492.4
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 1.5,
+   "exchange_charges": 0.15,
+   "gross_pnl": 24.8,
+   "gst": 0.3,
+   "net_pnl": 22.15,
+   "net_roi_pct": 0.893,
+   "sebi_charges": 0.005,
+   "stamp_duty": 0.07,
+   "stt": 0.63,
+   "total_charges": 2.65,
+   "turnover_buy": 2480.0,
+   "turnover_sell": 2504.8
+  },
+  "qty": 1,
+  "sell": 2504.8
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 19.44,
+   "exchange_charges": 1.92,
+   "gross_pnl": 322.4,
+   "gst": 3.86,
+   "net_pnl": 288.0,
+   "net_roi_pct": 0.893,
+   "sebi_charges": 0.0648,
+   "stamp_duty": 0.97,
+   "stt": 8.14,
+   "total_charges": 34.4,
+   "turnover_buy": 32240.0,
+   "turnover_sell": 32562.4
+  },
+  "qty": 13,
+  "sell": 2504.8
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 29.61,
+   "gross_pnl": 4960.0,
+   "gst": 12.71,
+   "net_pnl": 4736.56,
+   "net_roi_pct": 0.955,
+   "sebi_charges": 0.997,
+   "stamp_duty": 14.88,
+   "stt": 125.24,
+   "total_charges": 223.44,
+   "turnover_buy": 496000.0,
+   "turnover_sell": 500960.00000000006
+  },
+  "qty": 200,
+  "sell": 2504.8
+ },
+ {
+  "buy": 2480.0,
+  "charges": {
+   "brokerage": 40.0,
+   "exchange_charges": 148.05,
+   "gross_pnl": 24800.0,
+   "gst": 34.75,
+   "net_pnl": 23871.62,
+   "net_roi_pct": 0.963,
+   "sebi_charges": 4.9848,
+   "stamp_duty": 74.4,
+   "stt": 626.2,
+   "total_charges": 928.38,
+   "turnover_buy": 2480000.0,
+   "turnover_sell": 2504800.0
+  },
+  "qty": 1000,
+  "sell": 2504.8
+ }
+]

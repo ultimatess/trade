@@ -1,0 +1,36 @@
+{
+ "brier": 0.0,
+ "broker": {
+  "cash": 108532.6087,
+  "daily_realized_loss": 9.06,
+  "daily_realized_pnl": -9.06,
+  "positions": {
+   "TATASTEEL": {
+    "current_price": 158.17905,
+    "entry_price": 158.17905,
+    "entry_time": 1700000300.0,
+    "is_active": false,
+    "quantity": 54,
+    "stop_loss_price": 157.07,
+    "symbol": "TATASTEEL",
+    "target_price": 159.76
+   }
+  },
+  "total_equity": 108532.6087,
+  "trades": [
+   {
+    "entry_price": 158.17905,
+    "entry_time": 1700000300.0,
+    "exit_price": 158.17905,
+    "exit_reason": "EOD_SQUAREOFF",
+    "exit_time": 1700010000.0,
+    "gross_pnl": 0.0,
+    "net_pnl": -9.06,
+    "quantity": 54,
+    "symbol": "TATASTEEL",
+    "total_statutory_charges": 9.06
+   }
+  ]
+ },
+ "calibration_history": []
+}

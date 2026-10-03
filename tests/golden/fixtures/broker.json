@@ -1,0 +1,248 @@
+{
+ "flatten_dup_tiny": {
+  "cash": 119544.03,
+  "daily_realized_loss": 65.77,
+  "daily_realized_pnl": -65.77,
+  "dup_is_none": true,
+  "positions": {
+   "D": {
+    "current_price": 500.25,
+    "entry_price": 500.25,
+    "entry_time": 1000.0,
+    "is_active": false,
+    "quantity": 20,
+    "stop_loss_price": 496.75,
+    "symbol": "D",
+    "target_price": 505.25
+   },
+   "E": {
+    "current_price": 800.4,
+    "entry_price": 800.4,
+    "entry_time": 1000.0,
+    "is_active": false,
+    "quantity": 12,
+    "stop_loss_price": 794.8,
+    "symbol": "E",
+    "target_price": 808.4
+   }
+  },
+  "tiny_is_none": true,
+  "total_equity": 119544.03,
+  "trades": [
+   {
+    "entry_price": 500.25,
+    "entry_time": 1000.0,
+    "exit_price": 498.0,
+    "exit_reason": "KILL_SWITCH",
+    "exit_time": 1200.0,
+    "gross_pnl": -45.0,
+    "net_pnl": -55.58,
+    "quantity": 20,
+    "symbol": "D",
+    "total_statutory_charges": 10.58
+   },
+   {
+    "entry_price": 800.4,
+    "entry_time": 1000.0,
+    "exit_price": 800.4,
+    "exit_reason": "KILL_SWITCH",
+    "exit_time": 1200.0,
+    "gross_pnl": 0.0,
+    "net_pnl": -10.19,
+    "quantity": 12,
+    "symbol": "E",
+    "total_statutory_charges": 10.19
+   }
+  ]
+ },
+ "repeated_trades_cash_drift": {
+  "cash": 221131.89999999997,
+  "daily_realized_loss": 0.0,
+  "daily_realized_pnl": 1071.9,
+  "positions": {
+   "G": {
+    "current_price": 101.05,
+    "entry_price": 100.05,
+    "entry_time": 1600.0,
+    "is_active": false,
+    "quantity": 200,
+    "stop_loss_price": 99.35,
+    "symbol": "G",
+    "target_price": 101.05
+   }
+  },
+  "total_equity": 221131.89999999997,
+  "trades": [
+   {
+    "entry_price": 100.05,
+    "entry_time": 1000.0,
+    "exit_price": 101.05,
+    "exit_reason": "TAKE_PROFIT",
+    "exit_time": 1060.0,
+    "gross_pnl": 200.0,
+    "net_pnl": 178.65,
+    "quantity": 200,
+    "symbol": "G",
+    "total_statutory_charges": 21.35
+   },
+   {
+    "entry_price": 100.05,
+    "entry_time": 1120.0,
+    "exit_price": 101.05,
+    "exit_reason": "TAKE_PROFIT",
+    "exit_time": 1180.0,
+    "gross_pnl": 200.0,
+    "net_pnl": 178.65,
+    "quantity": 200,
+    "symbol": "G",
+    "total_statutory_charges": 21.35
+   },
+   {
+    "entry_price": 100.05,
+    "entry_time": 1240.0,
+    "exit_price": 101.05,
+    "exit_reason": "TAKE_PROFIT",
+    "exit_time": 1300.0,
+    "gross_pnl": 200.0,
+    "net_pnl": 178.65,
+    "quantity": 200,
+    "symbol": "G",
+    "total_statutory_charges": 21.35
+   },
+   {
+    "entry_price": 100.05,
+    "entry_time": 1360.0,
+    "exit_price": 101.05,
+    "exit_reason": "TAKE_PROFIT",
+    "exit_time": 1420.0,
+    "gross_pnl": 200.0,
+    "net_pnl": 178.65,
+    "quantity": 200,
+    "symbol": "G",
+    "total_statutory_charges": 21.35
+   },
+   {
+    "entry_price": 100.05,
+    "entry_time": 1480.0,
+    "exit_price": 101.05,
+    "exit_reason": "TAKE_PROFIT",
+    "exit_time": 1540.0,
+    "gross_pnl": 200.0,
+    "net_pnl": 178.65,
+    "quantity": 200,
+    "symbol": "G",
+    "total_statutory_charges": 21.35
+   },
+   {
+    "entry_price": 100.05,
+    "entry_time": 1600.0,
+    "exit_price": 101.05,
+    "exit_reason": "TAKE_PROFIT",
+    "exit_time": 1660.0,
+    "gross_pnl": 200.0,
+    "net_pnl": 178.65,
+    "quantity": 200,
+    "symbol": "G",
+    "total_statutory_charges": 21.35
+   }
+  ]
+ },
+ "stop_loss": {
+  "cash": 107191.595,
+  "daily_realized_loss": 62.03,
+  "daily_realized_pnl": -62.03,
+  "positions": {
+   "B": {
+    "current_price": 1430.0,
+    "entry_price": 1450.725,
+    "entry_time": 1000.0,
+    "is_active": false,
+    "quantity": 5,
+    "stop_loss_price": 1440.57,
+    "symbol": "B",
+    "target_price": 1465.23
+   }
+  },
+  "total_equity": 107191.595,
+  "trades": [
+   {
+    "entry_price": 1450.725,
+    "entry_time": 1000.0,
+    "exit_price": 1439.849715,
+    "exit_reason": "STOP_LOSS",
+    "exit_time": 1060.0,
+    "gross_pnl": -54.38,
+    "net_pnl": -62.03,
+    "quantity": 5,
+    "symbol": "B",
+    "total_statutory_charges": 7.66
+   }
+  ]
+ },
+ "take_profit": {
+  "cash": 120188.65,
+  "daily_realized_loss": 0.0,
+  "daily_realized_pnl": 178.65,
+  "order_price": 100.05,
+  "order_qty": 200,
+  "positions": {
+   "A": {
+    "current_price": 101.14999999999999,
+    "entry_price": 100.05,
+    "entry_time": 1000.0,
+    "is_active": false,
+    "quantity": 200,
+    "stop_loss_price": 99.35,
+    "symbol": "A",
+    "target_price": 101.05
+   }
+  },
+  "total_equity": 120188.65,
+  "trades": [
+   {
+    "entry_price": 100.05,
+    "entry_time": 1000.0,
+    "exit_price": 101.05,
+    "exit_reason": "TAKE_PROFIT",
+    "exit_time": 1120.0,
+    "gross_pnl": 200.0,
+    "net_pnl": 178.65,
+    "quantity": 200,
+    "symbol": "A",
+    "total_statutory_charges": 21.35
+   }
+  ]
+ },
+ "timeout": {
+  "cash": 109849.0466,
+  "daily_realized_loss": 9.08,
+  "daily_realized_pnl": -9.08,
+  "positions": {
+   "C": {
+    "current_price": 156.5,
+    "entry_price": 156.47820000000002,
+    "entry_time": 1000.0,
+    "is_active": false,
+    "quantity": 63,
+    "stop_loss_price": 155.38,
+    "symbol": "C",
+    "target_price": 158.04
+   }
+  },
+  "total_equity": 109849.0466,
+  "trades": [
+   {
+    "entry_price": 156.47820000000002,
+    "entry_time": 1000.0,
+    "exit_price": 156.5,
+    "exit_reason": "TIMEOUT",
+    "exit_time": 3100.0,
+    "gross_pnl": 1.37,
+    "net_pnl": -9.08,
+    "quantity": 63,
+    "symbol": "C",
+    "total_statutory_charges": 10.45
+   }
+  ]
+ }
+}
