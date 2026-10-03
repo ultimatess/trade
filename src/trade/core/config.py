@@ -100,7 +100,8 @@ class RuntimeSettings:
 T = TypeVar("T")
 
 
-def _load(path: Path, cls: type[T]) -> tuple[T, LoadedFile]:
+def load_yaml_dataclass(path: Path, cls: type[T]) -> tuple[T, LoadedFile]:
+    """Strictly load a YAML mapping into a frozen dataclass (exact keys, exact types)."""
     try:
         raw = path.read_bytes()
     except OSError as e:
@@ -116,6 +117,11 @@ def _load(path: Path, cls: type[T]) -> tuple[T, LoadedFile]:
     values: dict[str, Any] = {}
     for name, f in expected.items():
         v = data[name]
+        if str(f.type) == "tuple[str, ...]":
+            if not isinstance(v, list) or not all(isinstance(x, str) and x for x in v):
+                raise ConfigError(f"{path}: {name} must be a list of non-empty strings")
+            values[name] = tuple(v)
+            continue
         want = {"int": int, "float": float, "str": str}[str(f.type)]
         if want is float and isinstance(v, int) and not isinstance(v, bool):
             v = float(v)
@@ -126,22 +132,22 @@ def _load(path: Path, cls: type[T]) -> tuple[T, LoadedFile]:
 
 
 def load_risk_limits() -> tuple[RiskLimits, LoadedFile]:
-    limits, meta = _load(config_dir() / "risk_limits.yaml", RiskLimits)
+    limits, meta = load_yaml_dataclass(config_dir() / "risk_limits.yaml", RiskLimits)
     if not 0.0 < limits.max_drawdown_pct < 1.0 or limits.max_open_positions < 0:
         raise ConfigError("risk_limits.yaml: values out of range")
     return limits, meta
 
 
 def load_cost_model(model_id: str = "nse_intraday") -> tuple[CostModelConfig, LoadedFile]:
-    return _load(config_dir() / "cost_models" / f"{model_id}.yaml", CostModelConfig)
+    return load_yaml_dataclass(config_dir() / "cost_models" / f"{model_id}.yaml", CostModelConfig)
 
 
 def load_social_momentum_v1() -> tuple[SocialMomentumV1Params, LoadedFile]:
-    return _load(_PACKAGE_ROOT / "strategies" / "social_momentum" / "v1" / "params.yaml", SocialMomentumV1Params)
+    return load_yaml_dataclass(_PACKAGE_ROOT / "strategies" / "social_momentum" / "v1" / "params.yaml", SocialMomentumV1Params)
 
 
 def load_runtime() -> tuple[RuntimeSettings, LoadedFile]:
-    settings, meta = _load(config_dir() / "runtime.yaml", RuntimeSettings)
+    settings, meta = load_yaml_dataclass(config_dir() / "runtime.yaml", RuntimeSettings)
     broker = os.environ.get("BROKER_TYPE")
     if broker:
         settings = dataclasses.replace(settings, broker_type=broker)

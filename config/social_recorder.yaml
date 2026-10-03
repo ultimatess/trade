@@ -1,0 +1,11 @@
+# Real social-data recorder (operator decision 2026-10-03: record forward).
+# Credentials are NOT here; they come from the environment / .env.
+version: 1
+subreddits:
+  - IndianStreetBets
+  - IndianStockMarket
+  - StockMarketIndia
+  - DalalStreetTalks
+poll_interval_seconds: 60
+max_pages_per_poll: 5          # pagination depth when catching up after a pause
+page_size: 100                 # Reddit maximum

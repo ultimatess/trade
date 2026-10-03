@@ -18,3 +18,7 @@ trading.lock
 
 # Runtime state (kill switch, operator token) and recorded data
 var/
+
+# Datasets: recorded payloads are local only (manifests may be committed later)
+datasets/*
+!datasets/README.md
