@@ -1,7 +1,6 @@
 """
-Main Deterministic Execution Loop for Indian Quant Bot.
-Coordinates Ingestion, Deterministic Risk Vetoes, Fast Reflex Scoring,
-and Idempotent OCO Bracket Order Routing.
+Paper-trading loop: ingestion, Strategy #001 through the shared decision pipeline,
+deterministic risk approval, and paper execution with brackets.
 """
 
 import logging
@@ -10,10 +9,12 @@ import time
 from trade.brokers.paper import IndianPaperBroker
 from trade.core.config import config
 from trade.core.market_state.models import MarketSnapshot
+from trade.core.pipeline import DecisionPipeline
 from trade.core.risk.engine import RiskEngine
 from trade.core.strategy.calibration import CalibrationEngine
+from trade.core.strategy.contract import Observation
 from trade.data.providers.social import SocialMomentumScanner
-from trade.strategies.social_momentum.reflex import FastReflexScorer
+from trade.strategies.social_momentum.v1.strategy import SocialMomentumV1
 
 # Setup clean structured logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%H:%M:%S")
@@ -26,7 +27,7 @@ class QuantTradingSystem:
     def __init__(self) -> None:
         self.risk_engine = RiskEngine()
         self.calibration_engine = CalibrationEngine()
-        self.reflex_scorer = FastReflexScorer(self.calibration_engine)
+        self.strategy = SocialMomentumV1()
         self.social_scanner = SocialMomentumScanner()
         self.broker = IndianPaperBroker(initial_capital=config.STARTING_CAPITAL)
         self.is_running = True
@@ -83,37 +84,18 @@ class QuantTradingSystem:
             adv_inr=adv_inr,
         )
 
-        # Step 5: Deterministic Pre-Trade Risk Gate Validation (Layer 3 Veto)
-        active_pos_count = len([p for p in self.broker.positions.values() if p.is_active])
-        passed_risk, vetoes = self.risk_engine.validate_pre_trade_gates(
-            snapshot=snapshot,
-            signal=signal,
-            current_equity=self.broker.total_equity,
-            current_positions_count=active_pos_count,
-            daily_loss_incurred=self.broker.daily_realized_loss,
-            time_str=simulated_time_str,
-        )
-
-        if not passed_risk:
-            logger.info(f"RISK VETO: Trade blocked by deterministic rules. Reasons: {vetoes}")
-            return
-
-        # Step 6: Fast Reflex Scoring (Layer 2)
-        decision = self.reflex_scorer.evaluate(snapshot, signal)
-        logger.info(
-            f"REFLEX SCORING: P(Organic)={decision.p_organic:.2f} | "
-            f"P(Win Calibrated)={decision.p_win_calibrated:.2f} | "
-            f"Quality={decision.setup_quality:.1f} | Recommended Kelly Sizing={decision.recommended_fraction:.2%}"
-        )
-
-        if not decision.passed_all_gates:
-            logger.info(f"REFLEX VETO: Setup did not meet quality thresholds. Reasons: {decision.veto_reasons}")
-            return
-
-        # Step 7: Order Execution (Layer 3 - Idempotent OCO Bracket)
-        order = self.broker.submit_bracket_entry(
-            symbol=symbol, capital_fraction=decision.recommended_fraction, current_price=current_price, current_time=ts
-        )
-
-        if order:
-            logger.info(f"ORDER DISPATCHED: ClientOrderID={order.client_order_id} Symbol={symbol}")
+        # Step 5: Strategy -> Signal -> Sizer -> RiskEngine (authoritative) -> Broker
+        obs = Observation(symbol=symbol, as_of=ts, session_time=simulated_time_str, market=snapshot, social=signal)
+        pipeline = DecisionPipeline(self.strategy, self.risk_engine)
+        result = pipeline.process(obs, self.broker.portfolio_view(ts), self.broker)
+        d = result.decision.diagnostics if result.decision else {}
+        if d:
+            logger.info(
+                f"STRATEGY {self.strategy.strategy_id} v{self.strategy.version}: P(Organic)={d['p_organic']:.2f} | "
+                f"P(Win) score (uncalibrated)={d['p_win_calibrated']:.2f} | Quality={d['setup_quality']:.1f}"
+            )
+        if result.step == "ORDER_FILLED":
+            for order in result.orders:
+                logger.info(f"ORDER DISPATCHED: ClientOrderID={order.client_order_id} Symbol={symbol}")
+        else:
+            logger.info(f"NO ORDER [{result.step}]: {list(result.reason_codes)}")

@@ -14,3 +14,10 @@ min_adv_inr: 100000000.0
 entry_window_start: "09:30"          # IST
 entry_window_end: "14:30"            # IST
 mandatory_squareoff: "15:10"         # IST
+# --- Sizing policy (system-level; strategies cannot override) ---
+min_order_notional_inr: 1000.0       # smaller allocations are refused
+fixed_notional_inr: 20000.0          # notional used by fixed-notional sizing
+# Kelly sizing for a strategy WITHOUT empirical calibration:
+#   legacy_strategy_fraction = honour the strategy's own fraction (legacy behaviour, D-003)
+#   fixed_notional           = refuse Kelly and size at fixed_notional_inr
+uncalibrated_kelly_policy: legacy_strategy_fraction

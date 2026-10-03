@@ -1,21 +1,22 @@
 """
-Comprehensive Test Suite for Autonomous Quant System.
-Validates Indian Tax Calculations, Risk Vetoes, Kill Switch Invariance,
-Reflex Calibration, and OCO Execution.
+Original system test suite (ported to the Phase 2 interfaces).
+
+Validates Indian tax calculations, risk vetoes, kill-switch invariance, Strategy #001
+scoring and sizing, bracket execution, and the legacy simulation harness. Each test
+keeps the intent of the original Phase 0 test.
 """
 
 import os
 import unittest
 
+from tests import factories
 from trade.backtesting.engine import BacktestRunner
 from trade.brokers.paper import IndianPaperBroker
 from trade.core.config import config
 from trade.core.execution.charges import IndianTaxCalculator
-from trade.core.market_state.models import MarketSnapshot
 from trade.core.risk.engine import RiskEngine
-from trade.core.signals.models import SocialSignal
-from trade.core.strategy.calibration import CalibrationEngine
-from trade.strategies.social_momentum.reflex import FastReflexScorer
+from trade.core.strategy.contract import Observation
+from trade.strategies.social_momentum.v1.strategy import SocialMomentumV1
 
 
 class TestQuantSystem(unittest.TestCase):
@@ -31,194 +32,74 @@ class TestQuantSystem(unittest.TestCase):
 
     def test_indian_tax_calculator(self):
         """Verifies statutory charges for a ₹20,000 roundtrip trade."""
-        buy_price = 100.0
-        sell_price = 101.0  # +1.00% gross gain
-        quantity = 200  # ₹20,000 turnover
-
-        charges = IndianTaxCalculator.calculate_charges(buy_price, sell_price, quantity)
-        # Brokerage should be around ₹40 (₹20 buy + ₹20 sell)
-        self.assertAlmostEqual(charges["brokerage"], 12.06, delta=30.0)
+        charges = IndianTaxCalculator.calculate_charges(100.0, 101.0, 200)
+        self.assertEqual(charges["brokerage"], 12.06)  # min(₹20, 0.03%) per leg
         self.assertGreater(charges["stt"], 4.0)  # STT on sell
         self.assertGreater(charges["gst"], 2.0)  # GST
-        self.assertGreater(charges["total_charges"], 10.0)
-        # Gross gain is ₹200.00
+        self.assertEqual(charges["total_charges"], 21.34)
         self.assertEqual(charges["gross_pnl"], 200.0)
-        # Net gain after charges should be positive (~₹150 to ₹175)
-        self.assertGreater(charges["net_pnl"], 100.0)
+        self.assertEqual(charges["net_pnl"], 178.66)
 
     def test_risk_engine_trading_hours_veto(self):
         """Pre-market or post-market orders must be strictly vetoed."""
-        snapshot = MarketSnapshot(
-            symbol="TATASTEEL",
-            timestamp=1000.0,
-            last_price=150.0,
-            bid=149.95,
-            ask=150.05,
-            bid_depth=20000,
-            ask_depth=5000,
-            vwap=149.5,
-            relative_volume=3.5,
-            upper_circuit=165.0,
-            lower_circuit=135.0,
-            adv_inr=150_000_000.0,
-        )
-        signal = SocialSignal(
-            symbol="TATASTEEL",
-            timestamp=1000.0,
-            mentions_count=45,
-            velocity_zscore=3.8,
-            unique_verified_ratio=0.8,
-            spam_cluster_score=0.1,
-        )
-
-        # Before 09:30 AM IST
-        passed, reasons = self.risk_engine.validate_pre_trade_gates(
-            snapshot=snapshot,
-            signal=signal,
-            current_equity=100_000.0,
-            current_positions_count=0,
-            daily_loss_incurred=0.0,
-            time_str="09:15",
-        )
-        self.assertFalse(passed)
-        self.assertTrue(any("OUTSIDE_TRADING_WINDOW" in r for r in reasons))
+        snap = factories.snapshot("TATASTEEL", price=150.0)
+        d = self.risk_engine.evaluate(factories.intent("TATASTEEL", 10, 150.0), factories.portfolio(), snap, "09:15")
+        self.assertFalse(d.allowed)
+        self.assertIn("OUTSIDE_TRADING_WINDOW", d.reason_codes)
 
     def test_risk_engine_circuit_proximity_veto(self):
         """Orders near Upper or Lower Circuit must be vetoed to avoid liquidity lock."""
-        # Price is at 164.50 with Upper Circuit at 165.0 (0.3% away < 1.5% buffer)
-        snapshot = MarketSnapshot(
-            symbol="ZOMATO",
-            timestamp=1000.0,
-            last_price=164.50,
-            bid=164.40,
-            ask=164.60,
-            bid_depth=20000,
-            ask_depth=5000,
-            vwap=160.0,
-            relative_volume=4.0,
-            upper_circuit=165.0,
-            lower_circuit=135.0,
-            adv_inr=150_000_000.0,
-        )
-        signal = SocialSignal(
-            symbol="ZOMATO",
-            timestamp=1000.0,
-            mentions_count=50,
-            velocity_zscore=4.0,
-            unique_verified_ratio=0.85,
-            spam_cluster_score=0.05,
-        )
-
-        passed, reasons = self.risk_engine.validate_pre_trade_gates(
-            snapshot=snapshot,
-            signal=signal,
-            current_equity=100_000.0,
-            current_positions_count=0,
-            daily_loss_incurred=0.0,
-            time_str="11:00",
-        )
-        self.assertFalse(passed)
-        self.assertTrue(any("TOO_CLOSE_TO_UPPER_CIRCUIT" in r for r in reasons))
+        # Price 164.50 with Upper Circuit 165.0 (0.3% away < 1.5% buffer)
+        snap = factories.snapshot("ZOMATO", price=164.50, upper_circuit=165.0, lower_circuit=135.0)
+        d = self.risk_engine.evaluate(factories.intent("ZOMATO", 10, 164.5), factories.portfolio(), snap, "11:00")
+        self.assertFalse(d.allowed)
+        self.assertIn("NEAR_UPPER_CIRCUIT", d.reason_codes)
 
     def test_kill_switch_triggers_on_daily_loss(self):
-        """Reaching ₹2,000 daily loss immediately trips kill switch."""
-        snapshot = MarketSnapshot(
-            symbol="RELIANCE",
-            timestamp=1000.0,
-            last_price=2500.0,
-            bid=2499.5,
-            ask=2500.5,
-            bid_depth=20000,
-            ask_depth=5000,
-            vwap=2490.0,
-            relative_volume=3.5,
-            upper_circuit=2750.0,
-            lower_circuit=2250.0,
-            adv_inr=500_000_000.0,
+        """Reaching ₹2,000 daily loss immediately trips the kill switch."""
+        snap = factories.snapshot("RELIANCE", price=2500.0)
+        d = self.risk_engine.evaluate(
+            factories.intent("RELIANCE", 5, 2500.0),
+            factories.portfolio(cash=97_900.0, daily_loss=2100.0),
+            snap,
+            "11:00",
         )
-        signal = SocialSignal(
-            symbol="RELIANCE",
-            timestamp=1000.0,
-            mentions_count=40,
-            velocity_zscore=3.5,
-            unique_verified_ratio=0.85,
-            spam_cluster_score=0.1,
-        )
-
-        # Incurred loss of ₹2,100 (breaches ₹2,000 limit)
-        passed, reasons = self.risk_engine.validate_pre_trade_gates(
-            snapshot=snapshot,
-            signal=signal,
-            current_equity=97_900.0,
-            current_positions_count=0,
-            daily_loss_incurred=2100.0,
-            time_str="11:00",
-        )
-        self.assertFalse(passed)
+        self.assertFalse(d.allowed)
         self.assertTrue(self.risk_engine.is_kill_switch_active())
-        self.assertTrue(any("DAILY_LOSS_LIMIT_EXCEEDED" in r for r in reasons))
+        self.assertIn("DAILY_LOSS_LIMIT", d.reason_codes)
 
-    def test_fast_reflex_scoring_and_sizing(self):
-        """Fast reflex computes calibrated probability and caps Kelly sizing at 20% NAV."""
-        calibrator = CalibrationEngine()
-        scorer = FastReflexScorer(calibrator)
-
-        snapshot = MarketSnapshot(
+    def test_strategy_scoring_and_sizing(self):
+        """Strategy #001 scores the setup, emits a BUY signal and caps its sizing request at 20%."""
+        obs = Observation(
             symbol="INFY",
-            timestamp=1000.0,
-            last_price=1600.0,
-            bid=1599.5,
-            ask=1600.5,
-            bid_depth=30000,
-            ask_depth=8000,
-            vwap=1595.0,
-            relative_volume=4.5,
-            upper_circuit=1760.0,
-            lower_circuit=1440.0,
-            adv_inr=300_000_000.0,
+            as_of=1000.0,
+            session_time="11:00",
+            market=factories.snapshot(vwap=1595.0),
+            social=factories.social(),
         )
-        signal = SocialSignal(
-            symbol="INFY",
-            timestamp=1000.0,
-            mentions_count=60,
-            velocity_zscore=4.2,
-            unique_verified_ratio=0.9,
-            spam_cluster_score=0.05,
-        )
+        decision = SocialMomentumV1().on_observation(obs)
+        self.assertEqual(len(decision.signals), 1)
+        s = decision.signals[0]
+        self.assertGreaterEqual(s.confidence, config.MIN_CALIBRATED_PROBABILITY)
+        self.assertLessEqual(s.requested_fraction, 0.20)
+        self.assertIsNone(s.probability)  # uncalibrated: no probability claimed
 
-        decision = scorer.evaluate(snapshot, signal)
-        self.assertTrue(decision.passed_all_gates)
-        self.assertGreaterEqual(decision.p_win_calibrated, config.MIN_CALIBRATED_PROBABILITY)
-        self.assertLessEqual(decision.recommended_fraction, 0.20)  # Capped at 20%
-
-    def test_paper_broker_oco_execution(self):
-        """Verifies Take Profit (+1.00%) and Stop Loss (-0.70%) triggers."""
+    def test_paper_broker_bracket_execution(self):
+        """Verifies the Take Profit (+1.00%) bracket trigger."""
         broker = IndianPaperBroker(initial_capital=100_000.0)
-        entry_price = 100.0
-
-        # Place Entry
-        order = broker.submit_bracket_entry(
-            "TEST_STOCK", capital_fraction=0.20, current_price=entry_price, current_time=1000.0
-        )
+        order = broker.submit_intent(factories.intent("TEST_STOCK", 200, 100.0), 100.0, 1000.0)
         self.assertIsNotNone(order)
-        self.assertIn("TEST_STOCK", broker.positions)
         pos = broker.positions["TEST_STOCK"]
-
-        # Simulate price moving to target price (+1.00%)
         trade = broker.update_price_tick("TEST_STOCK", tick_price=pos.target_price + 0.10, tick_time=1060.0)
         self.assertIsNotNone(trade)
         self.assertEqual(trade.exit_reason, "TAKE_PROFIT")
         self.assertGreater(trade.net_pnl, 0.0)
 
     def test_backtest_simulation_execution(self):
-        """Runs multi-regime backtester and verifies statistical calculation."""
-        runner = BacktestRunner(seed=123)
-        metrics = runner.run_multi_regime_simulation(total_candles=150)
-        self.assertIn("total_trades", metrics)
-        self.assertIn("sharpe_ratio", metrics)
-        self.assertIn("max_drawdown_pct", metrics)
-        self.assertIn("hit_rate_pct", metrics)
-        self.assertIn("t_statistic", metrics)
+        """Runs the legacy multi-regime simulator and verifies the metric set."""
+        metrics = BacktestRunner(seed=123).run_multi_regime_simulation(total_candles=150)
+        for key in ("total_trades", "sharpe_ratio", "max_drawdown_pct", "hit_rate_pct", "t_statistic"):
+            self.assertIn(key, metrics)
 
 
 if __name__ == "__main__":

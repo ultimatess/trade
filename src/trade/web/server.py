@@ -21,10 +21,12 @@ from trade.backtesting.engine import BacktestRunner
 from trade.brokers.paper import IndianPaperBroker
 from trade.core.config import config, log_config_fingerprint, state_dir
 from trade.core.market_state.models import MarketSnapshot
+from trade.core.pipeline import DecisionPipeline
 from trade.core.risk.engine import RiskEngine
 from trade.core.strategy.calibration import CalibrationEngine
+from trade.core.strategy.contract import Observation
 from trade.data.providers.social import SocialMomentumScanner
-from trade.strategies.social_momentum.reflex import FastReflexScorer
+from trade.strategies.social_momentum.v1.strategy import SocialMomentumV1
 
 logger = logging.getLogger("QuantWebServer")
 
@@ -36,7 +38,7 @@ class SystemStateHolder:
         self.lock = threading.RLock()
         self.risk_engine = RiskEngine()
         self.calibration_engine = CalibrationEngine()
-        self.reflex_scorer = FastReflexScorer(self.calibration_engine)
+        self.strategy = SocialMomentumV1()
         self.social_scanner = SocialMomentumScanner()
         self.broker = IndianPaperBroker(initial_capital=config.STARTING_CAPITAL)
 
@@ -143,50 +145,38 @@ class SystemStateHolder:
                 adv_inr=180_000_000.0,
             )
 
-            # 4. Deterministic Pre-trade Gates
-            active_count = len([p for p in self.broker.positions.values() if p.is_active])
-            passed_risk, vetoes = self.risk_engine.validate_pre_trade_gates(
-                snapshot=snapshot,
-                signal=signal,
-                current_equity=self.broker.total_equity,
-                current_positions_count=active_count,
-                daily_loss_incurred=self.broker.daily_realized_loss,
-                time_str=time_str,
+            # 4. Strategy -> Signal -> Sizer -> RiskEngine (authoritative) -> Broker
+            obs = Observation(symbol=symbol, as_of=ts, session_time=time_str, market=snapshot, social=signal)
+            result = DecisionPipeline(self.strategy, self.risk_engine).process(
+                obs, self.broker.portfolio_view(ts), self.broker
             )
-
-            if not passed_risk:
-                self.log(f"Risk Engine Veto on {symbol}: {', '.join(vetoes)}", level="WARNING")
-                return {"success": False, "step": "RISK_VETO", "reasons": vetoes}
-
-            # 5. Fast Reflex Scoring
-            decision = self.reflex_scorer.evaluate(snapshot, signal)
-            self.recent_signals.append(
-                {
-                    "symbol": symbol,
-                    "time": datetime.now().strftime("%H:%M:%S"),
-                    "p_organic": decision.p_organic,
-                    "p_win": decision.p_win_calibrated,
-                    "quality": decision.setup_quality,
-                    "kelly_pct": round(decision.recommended_fraction * 100, 2),
-                    "passed": decision.passed_all_gates,
-                }
-            )
-
-            if not decision.passed_all_gates:
-                self.log(f"Reflex Veto on {symbol}: {', '.join(decision.veto_reasons)}", level="WARNING")
-                return {"success": False, "step": "REFLEX_VETO", "reasons": decision.veto_reasons}
-
-            # 6. Execute Order
-            order = self.broker.submit_bracket_entry(
-                symbol=symbol, capital_fraction=decision.recommended_fraction, current_price=price, current_time=ts
-            )
-
-            if order:
-                self.log(f"ORDER FILLED: {symbol} Qty {order.quantity} @ ₹{order.price:.2f} (Target +1%, Stop -0.7%)")
+            d = result.decision.diagnostics if result.decision else {}
+            if d:
+                self.recent_signals.append(
+                    {
+                        "symbol": symbol,
+                        "time": datetime.now().strftime("%H:%M:%S"),
+                        "p_organic": d["p_organic"],
+                        "p_win": d["p_win_calibrated"],
+                        "quality": d["setup_quality"],
+                        "kelly_pct": round(d["recommended_fraction"] * 100, 2),
+                        "passed": bool(result.decision and result.decision.signals),
+                    }
+                )
+            reasons = list(result.reason_codes)
+            if result.step == "ORDER_FILLED":
+                order = result.orders[0]
+                self.log(f"ORDER FILLED: {symbol} Qty {order.quantity} @ ₹{order.price:.2f} (bracket +1% / -0.7%)")
                 return {"success": True, "step": "ORDER_FILLED", "order_id": order.client_order_id, "symbol": symbol}
-            else:
-                self.log(f"Broker rejected order for {symbol}", level="WARNING")
-                return {"success": False, "step": "BROKER_REJECT"}
+            label = {
+                "NO_SIGNAL": "Strategy rejected",
+                "RISK_DENIED": "Risk Engine DENY",
+                "RISK_HALTED": "Risk HALT",
+                "SIZING_REJECTED": "Sizing rejected",
+                "BROKER_REJECT": "Broker rejected",
+            }[result.step]
+            self.log(f"{label} on {symbol}: {', '.join(reasons)}", level="WARNING")
+            return {"success": False, "step": result.step, "reasons": reasons}
 
     def run_backtest(self, total_candles: int = 500) -> dict[str, Any]:
         self.log("Starting legacy synthetic simulation (not evidence of edge)...")
@@ -221,7 +211,6 @@ class SystemStateHolder:
         with self.lock:
             self.broker = IndianPaperBroker(initial_capital=config.STARTING_CAPITAL)
             self.calibration_engine = CalibrationEngine()
-            self.reflex_scorer = FastReflexScorer(self.calibration_engine)
             self.recent_signals.clear()
             self.log("Account reset to starting equity ₹1,00,000. Clean slate initialized.")
 

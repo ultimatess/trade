@@ -16,10 +16,11 @@ from typing import Any
 from trade.brokers.paper import IndianPaperBroker
 from trade.core.config import config
 from trade.core.market_state.models import MarketSnapshot
+from trade.core.pipeline import DecisionPipeline
 from trade.core.risk.engine import RiskEngine
 from trade.core.signals.models import SocialSignal
-from trade.core.strategy.calibration import CalibrationEngine
-from trade.strategies.social_momentum.reflex import FastReflexScorer
+from trade.core.strategy.contract import Observation
+from trade.strategies.social_momentum.v1.strategy import SocialMomentumV1
 
 logger = logging.getLogger("Backtester")
 
@@ -120,8 +121,7 @@ class BacktestRunner:
 
     def _run(self, risk_engine: RiskEngine, total_candles: int) -> dict[str, Any]:
 
-        calibration_engine = CalibrationEngine()
-        reflex_scorer = FastReflexScorer(calibration_engine)
+        pipeline = DecisionPipeline(SocialMomentumV1(), risk_engine)
         broker = IndianPaperBroker(initial_capital=config.STARTING_CAPITAL)
 
         base_price = 1450.0  # Typical NSE mid-large cap (e.g., INFY / RELIANCE range)
@@ -187,25 +187,8 @@ class BacktestRunner:
             # Update existing positions
             broker.update_price_tick(symbol, current_price, simulated_time)
 
-            # Pre-trade gate check
-            passed_risk, _ = risk_engine.validate_pre_trade_gates(
-                snapshot=snapshot,
-                signal=signal,
-                current_equity=broker.total_equity,
-                current_positions_count=len([p for p in broker.positions.values() if p.is_active]),
-                daily_loss_incurred=broker.daily_realized_loss,
-                time_str="11:30",
-            )
-
-            if passed_risk:
-                decision = reflex_scorer.evaluate(snapshot, signal)
-                if decision.passed_all_gates and decision.recommended_fraction > 0:
-                    broker.submit_bracket_entry(
-                        symbol=symbol,
-                        capital_fraction=decision.recommended_fraction,
-                        current_price=current_price,
-                        current_time=simulated_time,
-                    )
+            obs = Observation(symbol=symbol, as_of=simulated_time, session_time="11:30", market=snapshot, social=signal)
+            pipeline.process(obs, broker.portfolio_view(simulated_time), broker)
 
         # Close any lingering positions at end of backtest
         broker.flatten_all(

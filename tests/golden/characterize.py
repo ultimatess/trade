@@ -22,6 +22,7 @@ from tests.golden.legacy import oracle
 from trade.backtesting.engine import BacktestRunner
 from trade.brokers.paper import IndianPaperBroker
 from trade.core.execution.charges import IndianTaxCalculator
+from trade.core.execution.intent import OrderIntent
 from trade.core.risk.engine import RiskEngine
 from trade.data.providers.social import SocialMomentumScanner
 from trade.paper.trading_system import QuantTradingSystem
@@ -149,37 +150,62 @@ def _broker_state(b: IndianPaperBroker) -> dict[str, Any]:
     }
 
 
+def _legacy_entry(b: IndianPaperBroker, symbol: str, fraction: float, price: float, t: float) -> Any:
+    """Legacy broker-side sizing rule, reproduced to drive the broker through submit_intent."""
+    allocation = min(20_000.0, b.cash * fraction)
+    if allocation < 1000.0 or int(allocation / price) <= 0:
+        return None
+    return b.submit_intent(
+        OrderIntent(
+            signal_id=f"{symbol}-{t}",
+            strategy_id="legacy",
+            strategy_version=0,
+            symbol=symbol,
+            side="BUY",
+            quantity=int(allocation / price),
+            reference_price=price,
+            take_profit_pct=0.010,
+            stop_loss_pct=0.007,
+            max_holding_s=35 * 60,
+            sizing_method="legacy",
+            created_at=t,
+        ),
+        price,
+        t,
+    )
+
+
 def characterize_broker() -> dict[str, Any]:
     scenarios: dict[str, Any] = {}
 
     b = IndianPaperBroker(100_000.0)
-    order = b.submit_bracket_entry("A", 0.2, 100.0, 1000.0)
+    order = _legacy_entry(b, "A", 0.2, 100.0, 1000.0)
     b.update_price_tick("A", 99.9, 1060.0)  # no exit
     b.update_price_tick("A", b.positions["A"].target_price + 0.1, 1120.0)
     scenarios["take_profit"] = {"order_qty": order.quantity, "order_price": order.price, **_broker_state(b)}
 
     b = IndianPaperBroker(100_000.0)
-    b.submit_bracket_entry("B", 0.075, 1450.0, 1000.0)
+    _legacy_entry(b, "B", 0.075, 1450.0, 1000.0)
     b.update_price_tick("B", 1430.0, 1060.0)
     scenarios["stop_loss"] = _broker_state(b)
 
     b = IndianPaperBroker(100_000.0)
-    b.submit_bracket_entry("C", 0.1, 156.4, 1000.0)
+    _legacy_entry(b, "C", 0.1, 156.4, 1000.0)
     b.update_price_tick("C", 156.5, 1000.0 + 35 * 60)
     scenarios["timeout"] = _broker_state(b)
 
     b = IndianPaperBroker(100_000.0)
-    b.submit_bracket_entry("D", 0.1, 500.0, 1000.0)
-    b.submit_bracket_entry("E", 0.1, 800.0, 1000.0)
-    dup = b.submit_bracket_entry("D", 0.1, 500.0, 1001.0)
-    tiny = b.submit_bracket_entry("F", 0.001, 500.0, 1001.0)
+    _legacy_entry(b, "D", 0.1, 500.0, 1000.0)
+    _legacy_entry(b, "E", 0.1, 800.0, 1000.0)
+    dup = _legacy_entry(b, "D", 0.1, 500.0, 1001.0)
+    tiny = _legacy_entry(b, "F", 0.001, 500.0, 1001.0)
     b.flatten_all({"D": 498.0}, 1200.0, reason="KILL_SWITCH")
     scenarios["flatten_dup_tiny"] = {"dup_is_none": dup is None, "tiny_is_none": tiny is None, **_broker_state(b)}
 
     b = IndianPaperBroker(100_000.0)
     t = 1000.0
     for _ in range(6):  # repeated trades expose D-001 cash drift
-        b.submit_bracket_entry("G", 0.2, 100.0, t)
+        _legacy_entry(b, "G", 0.2, 100.0, t)
         b.update_price_tick("G", b.positions["G"].target_price, t + 60)
         t += 120
     scenarios["repeated_trades_cash_drift"] = _broker_state(b)

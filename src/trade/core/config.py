@@ -61,6 +61,9 @@ class RiskLimits:
     entry_window_start: str
     entry_window_end: str
     mandatory_squareoff: str
+    min_order_notional_inr: float
+    fixed_notional_inr: float
+    uncalibrated_kelly_policy: str
 
 
 @dataclass(frozen=True)
@@ -135,6 +138,10 @@ def load_risk_limits() -> tuple[RiskLimits, LoadedFile]:
     limits, meta = load_yaml_dataclass(config_dir() / "risk_limits.yaml", RiskLimits)
     if not 0.0 < limits.max_drawdown_pct < 1.0 or limits.max_open_positions < 0:
         raise ConfigError("risk_limits.yaml: values out of range")
+    if limits.uncalibrated_kelly_policy not in ("legacy_strategy_fraction", "fixed_notional"):
+        raise ConfigError("risk_limits.yaml: uncalibrated_kelly_policy must be legacy_strategy_fraction|fixed_notional")
+    if not 0 < limits.min_order_notional_inr <= limits.fixed_notional_inr <= limits.max_order_notional_inr:
+        raise ConfigError("risk_limits.yaml: require 0 < min_order_notional <= fixed_notional <= max_order_notional")
     return limits, meta
 
 
