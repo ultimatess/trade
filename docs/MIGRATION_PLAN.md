@@ -86,3 +86,42 @@ New strategy interface, defect fixes D-001…D-006 (they change outputs → Phas
 ### Risks
 - Golden capture of D-001 makes the suite encode a bug. This is intentional, so that Phase 2 fixes it visibly, but reviewers must not read the golden values as "correct".
 - The import move is large. It is done in one mechanical commit, separate from all logic changes, to keep review tractable.
+
+---
+
+## Phase 2 — Detailed Plan
+
+### Objective
+Introduce the generic Strategy contract and run Social Momentum as **Strategy #001 v1** through it, with parity proven against the legacy implementation. Then fix the output-changing defects, each in its own commit with recorded before/after evidence.
+
+### Affected files
+New: `src/trade/core/strategy/contract.py` (Observation, Signal, Strategy, StrategySpec), `src/trade/core/risk/sizing.py`, `src/trade/core/execution/intent.py`, `src/trade/core/pipeline.py`, `src/trade/strategies/social_momentum/v1/{strategy.yaml,strategy.py,README.md,FINGERPRINT}`, `tests/golden/legacy/` (frozen legacy oracle), `tests/golden/CHANGELOG.md`, `tests/contract/`.
+Changed: `core/risk/engine.py`, `brokers/paper.py`, `paper/trading_system.py`, `backtesting/engine.py`, `web/server.py`, `core/config.py`.
+
+### Architecture impact
+- Strategy entry rules (OBI, RVOL, spam, reflex thresholds) move **out of** the RiskEngine into Strategy #001. The RiskEngine keeps only capital-protection, session and market-quality gates.
+- New order flow: `Observation → Strategy → Signal → Sizer → OrderIntent → RiskEngine.evaluate → ALLOW/DENY → broker`. Risk now checks the **sized** order.
+- The broker no longer sizes orders; it executes an `OrderIntent` (quantity + bracket).
+- Strategy versions are pinned by a content fingerprint. Editing v1 files fails the build.
+- Legacy implementations are frozen under `tests/golden/legacy/` as the parity oracle.
+
+### Steps (one or more commits each)
+| Step | Change | Output change? |
+|---|---|---|
+| 2.1 | Contract + Strategy #001 v1 + parity tests against the legacy oracle | No |
+| 2.2 | Sizer, OrderIntent, order-level `RiskEngine.evaluate`, shared decision pipeline; rewire backtest, paper and web | No (golden backtest/paper unchanged) |
+| 2.3 | D-001 cash accounting | Yes; golden updated with evidence |
+| 2.4 | D-002 calibration records the actual forecast | Yes (Brier only) |
+| 2.5 | D-006 drawdown (6% from high-water mark), daily loss incl. unrealized, daily reset, flatten on breach | Yes |
+| 2.6 | D-003/D-004 Kelly disabled for uncalibrated strategies → system fixed-notional sizing (₹20,000) | Yes |
+| 2.7 | Remove the legacy config facade; docs | No |
+
+Deferred: D-005 (brokerage model depends on the operator's broker), D-010 (Reddit has no "verified" users; unique-author features belong to Social Momentum **v2** on recorded data, Phase 3), D-009 and D-012 (Phases 3/6/7).
+
+### Acceptance Criteria
+1. Parity: over the 450-case golden grid, v1 through the new pipeline makes the same entry decision with the same size as the legacy risk+reflex path, and its scores match exactly (`p_organic`, `p_win_raw`, `p_win_calibrated`, `setup_quality`, `recommended_fraction`).
+2. After step 2.2 the golden backtest and paper-cycle fixtures are unchanged.
+3. Every later golden change is listed in `tests/golden/CHANGELOG.md` with its defect ID and the before/after metrics.
+4. Contract tests: determinism, no I/O in `on_observation`, signal validation, fingerprint pinning of v1.
+5. Risk tests: every order-level limit has an allow and a deny case; any exception gives DENY; drawdown and daily-loss breaches trigger the kill switch and flatten.
+6. `make ci` is green and the GitHub Actions run is green.
