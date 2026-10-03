@@ -1,18 +1,22 @@
 """
-Local Web Server & REST API for Autonomous Indian Quant Trading Bot.
-Uses Python's standard library ThreadingHTTPServer. Zero external dependencies.
+Local Web Server & REST API for the Indian Quant Trading Bot.
+Standard-library ThreadingHTTPServer, loopback-only, operator-token protected.
 """
 
 import os
+import re
+import hmac
 import json
+import math
 import time
 import logging
+import secrets
 import threading
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse
 from datetime import datetime
 
-from trade.core.config import config, log_config_fingerprint
+from trade.core.config import config, log_config_fingerprint, state_dir
 from trade.core.risk.engine import RiskEngine
 from trade.strategies.social_momentum.reflex import FastReflexScorer
 from trade.core.strategy.calibration import CalibrationEngine
@@ -37,6 +41,7 @@ class SystemStateHolder:
         
         self.bot_running = False
         self.bot_thread = None
+        self._bot_generation = 0
         self.recent_logs = []
         self.recent_signals = []
         self.latest_backtest_results = None
@@ -202,10 +207,13 @@ class SystemStateHolder:
             self.bot_running = False
             self.log(f"KILL SWITCH TRIGGERED: {reason}. Flattened {len(flattened)} open positions.", level="CRITICAL")
 
-    def unlock(self):
+    def unlock(self) -> bool:
         with self.lock:
-            self.risk_engine.clear_kill_switch()
-            self.log("Kill switch cleared. System re-armed and ready for execution.")
+            if not self.risk_engine.clear_kill_switch():
+                self.log("Kill switch clear FAILED. System remains HALTED.", level="CRITICAL")
+                return False
+            self.log("Kill switch cleared by operator. System re-armed.")
+            return True
 
     def reset_account(self):
         with self.lock:
@@ -222,22 +230,25 @@ class SystemStateHolder:
                 return False
             self.bot_running = not self.bot_running
             is_active = self.bot_running
+            if is_active:
+                # Generation counter: a worker from a previous start exits even if
+                # the bot is re-enabled before it wakes, so only one worker runs.
+                self._bot_generation += 1
+                self.bot_thread = threading.Thread(
+                    target=self._background_worker, args=(self._bot_generation,), daemon=True
+                )
+                self.bot_thread.start()
 
-        if is_active:
-            self.log("Autonomous trading loop STARTED.")
-            self.bot_thread = threading.Thread(target=self._background_worker, daemon=True)
-            self.bot_thread.start()
-        else:
-            self.log("Autonomous trading loop STOPPED.")
+        self.log("Autonomous trading loop STARTED." if is_active else "Autonomous trading loop STOPPED.")
         return is_active
 
-    def _background_worker(self):
+    def _background_worker(self, generation: int):
         """Simulates autonomous live market ticks and scans every 4 seconds."""
         symbols = ["TATASTEEL", "RELIANCE", "ZOMATO", "HDFCBANK", "INFY"]
         idx = 0
         prices = {"TATASTEEL": 156.40, "RELIANCE": 2480.0, "ZOMATO": 162.50, "HDFCBANK": 1440.0, "INFY": 1580.0}
 
-        while self.bot_running:
+        while self.bot_running and generation == self._bot_generation:
             try:
                 sym = symbols[idx % len(symbols)]
                 idx += 1
@@ -273,107 +284,193 @@ class SystemStateHolder:
 state_holder = SystemStateHolder()
 
 
+MAX_BODY_BYTES = 64 * 1024
+SYMBOL_RE = re.compile(r"^[A-Z0-9&_-]{1,20}$")
+TIME_RE = re.compile(r"^([01][0-9]|2[0-3]):[0-5][0-9]$")
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+STATIC_FILES = {"/static/vendor/tailwind-play.js": ("vendor/tailwind-play.js", "application/javascript")}
+UNLOCK_CONFIRMATION = "UNLOCK"
+
+
+class BadRequest(ValueError):
+    pass
+
+
+def load_or_create_operator_token() -> str:
+    """Per-installation operator token, stored 0600 in the state dir. Required on every mutating route."""
+    path = state_dir() / "operator_token"
+    try:
+        return path.read_text().strip()
+    except FileNotFoundError:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        token = secrets.token_urlsafe(32)
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "w") as f:
+            f.write(token)
+        return token
+
+
+def parse_cycle_payload(payload: dict) -> tuple:
+    """Validate /api/execute_cycle input. Market inputs are untrusted data."""
+    symbol = payload.get("symbol", "TATASTEEL")
+    if not isinstance(symbol, str) or not SYMBOL_RE.match(symbol):
+        raise BadRequest("symbol must match [A-Z0-9&_-]{1,20}")
+    try:
+        price = float(payload.get("price", 156.40))
+        rvol = float(payload.get("rvol", 4.2))
+    except (TypeError, ValueError):
+        raise BadRequest("price and rvol must be numbers") from None
+    if not (math.isfinite(price) and price > 0 and math.isfinite(rvol) and rvol >= 0):
+        raise BadRequest("price must be > 0 and rvol >= 0")
+    tweets = payload.get("tweets", [f"${symbol} surge on volume breakout"])
+    if not isinstance(tweets, list) or len(tweets) > 500 or not all(isinstance(t, str) and len(t) <= 2000 for t in tweets):
+        raise BadRequest("tweets must be a list of at most 500 strings of at most 2000 chars")
+    time_str = payload.get("time_str", "11:00")
+    if not isinstance(time_str, str) or not TIME_RE.match(time_str):
+        raise BadRequest("time_str must be HH:MM")
+    return symbol, price, rvol, tweets, time_str
+
+
 class QuantRequestHandler(BaseHTTPRequestHandler):
-    """Custom HTTP handler serving REST API and Web Dashboard."""
+    """Serves the dashboard and REST API on loopback only.
+
+    Security model (docs/CURRENT_STATE.md S-001..S-003):
+    - bound to 127.0.0.1; Host header must be a loopback name (blocks DNS rebinding)
+    - no CORS headers at all, so other origins cannot read responses
+    - every POST requires the X-Operator-Token header (blocks cross-site requests)
+    """
+
+    server_version = "TradeOS"
+    sys_version = ""
+    operator_token = ""
+    allowed_hosts: frozenset = frozenset()
+
+    def _send(self, body: bytes, content_type: str, status_code: int = 200):
+        self.send_response(status_code)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
 
     def _send_json(self, data, status_code=200):
-        body = json.dumps(data).encode("utf-8")
-        self.send_response(status_code)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(body)))
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.end_headers()
-        self.wfile.write(body)
+        self._send(json.dumps(data).encode("utf-8"), "application/json", status_code)
 
     def _send_html(self, html_content, status_code=200):
-        body = html_content.encode("utf-8")
-        self.send_response(status_code)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+        self._send(html_content.encode("utf-8"), "text/html; charset=utf-8", status_code)
+
+    def _host_ok(self) -> bool:
+        return self.headers.get("Host", "") in self.allowed_hosts
 
     def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.end_headers()
+        self._send_json({"error": "method not allowed"}, 405)
 
     def do_GET(self):
+        if not self._host_ok():
+            return self._send_json({"error": "forbidden host"}, 403)
         parsed = urlparse(self.path)
         if parsed.path == "/api/status":
             self._send_json(state_holder.get_status_payload())
         elif parsed.path == "/" or parsed.path == "/index.html":
-            html_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
-            if os.path.exists(html_path):
-                with open(html_path, "r", encoding="utf-8") as f:
-                    self._send_html(f.read())
-            else:
-                self._send_html("<h1>Dashboard not found. Please create index.html</h1>", 404)
+            html_path = os.path.join(STATIC_DIR, "index.html")
+            with open(html_path, "r", encoding="utf-8") as f:
+                html = f.read()
+            # Same-origin page receives the token; other origins cannot read this response.
+            self._send_html(html.replace("__OPERATOR_TOKEN__", self.operator_token))
+        elif parsed.path in STATIC_FILES:
+            rel, ctype = STATIC_FILES[parsed.path]
+            with open(os.path.join(STATIC_DIR, rel), "rb") as f:
+                self._send(f.read(), ctype)
         else:
-            self.send_response(404)
-            self.end_headers()
+            self._send_json({"error": "not found"}, 404)
 
     def do_POST(self):
-        parsed = urlparse(self.path)
-        content_length = int(self.headers.get("Content-Length", 0))
+        if not self._host_ok():
+            return self._send_json({"error": "forbidden host"}, 403)
+        if not hmac.compare_digest(self.headers.get("X-Operator-Token", ""), self.operator_token):
+            return self._send_json({"error": "operator token required"}, 401)
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+        except ValueError:
+            return self._send_json({"error": "bad Content-Length"}, 400)
+        if content_length > MAX_BODY_BYTES:
+            return self._send_json({"error": "request too large"}, 413)
         post_body = self.rfile.read(content_length) if content_length > 0 else b"{}"
-        
         try:
             payload = json.loads(post_body.decode("utf-8")) if post_body else {}
-        except Exception:
-            payload = {}
+        except (ValueError, UnicodeDecodeError):
+            return self._send_json({"error": "invalid JSON"}, 400)
+        if not isinstance(payload, dict):
+            return self._send_json({"error": "JSON object required"}, 400)
 
-        if parsed.path == "/api/execute_cycle":
-            symbol = payload.get("symbol", "TATASTEEL")
-            price = float(payload.get("price", 156.40))
-            rvol = float(payload.get("rvol", 4.2))
-            tweets = payload.get("tweets", [f"${symbol} surge on volume breakout"])
-            time_str = payload.get("time_str", "11:00")
-            res = state_holder.execute_cycle(symbol, price, rvol, tweets, time_str)
-            self._send_json(res)
+        parsed = urlparse(self.path)
+        try:
+            if parsed.path == "/api/execute_cycle":
+                self._send_json(state_holder.execute_cycle(*parse_cycle_payload(payload)))
 
-        elif parsed.path == "/api/run_backtest":
-            total_candles = int(payload.get("total_candles", 500))
-            metrics = state_holder.run_backtest(total_candles)
-            self._send_json(metrics)
+            elif parsed.path == "/api/run_backtest":
+                try:
+                    total_candles = int(payload.get("total_candles", 500))
+                except (TypeError, ValueError):
+                    raise BadRequest("total_candles must be an integer") from None
+                if not 1 <= total_candles <= 20_000:
+                    raise BadRequest("total_candles must be between 1 and 20000")
+                self._send_json(state_holder.run_backtest(total_candles))
 
-        elif parsed.path == "/api/kill_switch":
-            reason = payload.get("reason", "Operator Emergency Button Clicked")
-            state_holder.trigger_kill(reason)
-            self._send_json({"success": True, "message": "Kill switch engaged"})
+            elif parsed.path == "/api/kill_switch":
+                reason = str(payload.get("reason", "Operator Emergency Button Clicked"))[:200]
+                state_holder.trigger_kill(reason)
+                self._send_json({"success": True, "message": "Kill switch engaged"})
 
-        elif parsed.path == "/api/unlock":
-            state_holder.unlock()
-            self._send_json({"success": True, "message": "System unlocked"})
+            elif parsed.path == "/api/unlock":
+                if payload.get("confirm") != UNLOCK_CONFIRMATION:
+                    raise BadRequest(f'unlock requires {{"confirm": "{UNLOCK_CONFIRMATION}"}}')
+                if not state_holder.unlock():
+                    return self._send_json({"success": False, "message": "Unlock failed; system remains HALTED"}, 500)
+                self._send_json({"success": True, "message": "System unlocked"})
 
-        elif parsed.path == "/api/reset_account":
-            state_holder.reset_account()
-            self._send_json({"success": True, "message": "Account reset"})
+            elif parsed.path == "/api/reset_account":
+                state_holder.reset_account()
+                self._send_json({"success": True, "message": "Account reset"})
 
-        elif parsed.path == "/api/toggle_bot":
-            is_running = state_holder.toggle_bot()
-            self._send_json({"success": True, "bot_running": is_running})
+            elif parsed.path == "/api/toggle_bot":
+                is_running = state_holder.toggle_bot()
+                self._send_json({"success": True, "bot_running": is_running})
 
-        else:
-            self.send_response(404)
-            self.end_headers()
+            else:
+                self._send_json({"error": "not found"}, 404)
+        except BadRequest as e:
+            self._send_json({"error": str(e)}, 400)
+
+
+def make_server(port: int = 8080, host: str = "127.0.0.1") -> ThreadingHTTPServer:
+    if host not in ("127.0.0.1", "::1", "localhost"):
+        raise ValueError("The dashboard binds to loopback only; remote access is not supported.")
+    QuantRequestHandler.operator_token = load_or_create_operator_token()
+    httpd = ThreadingHTTPServer((host, port), QuantRequestHandler)
+    bound = httpd.server_address[1]
+    QuantRequestHandler.allowed_hosts = frozenset(
+        {f"127.0.0.1:{bound}", f"localhost:{bound}", f"[::1]:{bound}"}
+        | ({"127.0.0.1", "localhost"} if bound == 80 else set())
+    )
+    return httpd
 
 
 def run_server(port: int = 8080):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
     log_config_fingerprint(logger)
-    server_address = ("0.0.0.0", port)
-    httpd = ThreadingHTTPServer(server_address, QuantRequestHandler)
-    print(f"🚀 Quant Web Dashboard Server running at http://localhost:{port}")
-    print(f"👉 Open http://localhost:{port} in your browser to view and control the bot.")
+    httpd = make_server(port)
+    print(f"Quant Web Dashboard running at http://127.0.0.1:{port} (loopback only)")
+    print(f"Operator token stored in {state_dir() / 'operator_token'}")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("\nStopping server...")
         state_holder.bot_running = False
         httpd.server_close()
+
 
 if __name__ == "__main__":
     run_server(8080)

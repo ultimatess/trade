@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Autonomous Quant Trading System | NSE Intraday</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="operator-token" content="__OPERATOR_TOKEN__">
+  <script src="/static/vendor/tailwind-play.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
     body {
@@ -333,6 +334,21 @@ $TATASTEEL positive earnings revision</textarea>
       }
     }
 
+    // Every server-supplied string is untrusted: escape before inserting as HTML.
+    function esc(value) {
+      return String(value).replace(/[&<>"'`]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "`": "&#96;"}[c]));
+    }
+
+    const OPERATOR_TOKEN = document.querySelector('meta[name="operator-token"]').content;
+
+    function apiPost(path, body) {
+      return fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Operator-Token": OPERATOR_TOKEN },
+        body: JSON.stringify(body || {})
+      });
+    }
+
     async function fetchStatus() {
       try {
         const res = await fetch("/api/status");
@@ -404,8 +420,8 @@ $TATASTEEL positive earnings revision</textarea>
       } else {
         posTable.innerHTML = data.positions.map(p => `
           <tr class="hover:bg-gray-800/40">
-            <td class="py-2 font-bold text-white">${p.symbol}</td>
-            <td class="py-2 text-gray-300">${p.quantity}</td>
+            <td class="py-2 font-bold text-white">${esc(p.symbol)}</td>
+            <td class="py-2 text-gray-300">${esc(p.quantity)}</td>
             <td class="py-2 text-gray-300">₹${p.entry_price.toFixed(2)}</td>
             <td class="py-2 text-emerald-400 font-semibold">₹${p.target_price.toFixed(2)}</td>
             <td class="py-2 text-rose-400 font-semibold">₹${p.stop_loss_price.toFixed(2)}</td>
@@ -423,9 +439,9 @@ $TATASTEEL positive earnings revision</textarea>
       } else {
         tradesTable.innerHTML = data.trades.map(t => `
           <tr class="hover:bg-gray-800/40">
-            <td class="py-1.5 text-gray-400">${t.exit_time}</td>
-            <td class="py-1.5 font-bold text-white">${t.symbol}</td>
-            <td class="py-1.5"><span class="px-1.5 py-0.5 rounded text-[10px] ${t.exit_reason === 'TAKE_PROFIT' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800/40' : 'bg-rose-950 text-rose-300 border border-rose-800/40'}">${t.exit_reason}</span></td>
+            <td class="py-1.5 text-gray-400">${esc(t.exit_time)}</td>
+            <td class="py-1.5 font-bold text-white">${esc(t.symbol)}</td>
+            <td class="py-1.5"><span class="px-1.5 py-0.5 rounded text-[10px] ${t.exit_reason === 'TAKE_PROFIT' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800/40' : 'bg-rose-950 text-rose-300 border border-rose-800/40'}">${esc(t.exit_reason)}</span></td>
             <td class="py-1.5 ${t.gross_pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">₹${t.gross_pnl.toFixed(2)}</td>
             <td class="py-1.5 text-gray-400">₹${t.total_charges.toFixed(2)}</td>
             <td class="py-1.5 text-right font-bold ${t.net_pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${t.net_pnl >= 0 ? '+' : ''}₹${t.net_pnl.toFixed(2)}</td>
@@ -439,7 +455,7 @@ $TATASTEEL positive earnings revision</textarea>
         signalsContainer.innerHTML = data.recent_signals.map(s => `
           <div class="p-2.5 rounded bg-gray-900 border ${s.passed ? 'border-emerald-800/50' : 'border-gray-800'} text-xs">
             <div class="flex justify-between items-center mb-1">
-              <span class="font-bold text-white">${s.symbol} <span class="text-gray-500 text-[10px]">(${s.time})</span></span>
+              <span class="font-bold text-white">${esc(s.symbol)} <span class="text-gray-500 text-[10px]">(${esc(s.time)})</span></span>
               <span class="px-1.5 py-0.2 rounded text-[10px] ${s.passed ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'}">
                 ${s.passed ? 'PASSED & SIZED' : 'VETOED'}
               </span>
@@ -448,7 +464,7 @@ $TATASTEEL positive earnings revision</textarea>
               <div>Organic: <span class="text-gray-200 font-semibold">${(s.p_organic * 100).toFixed(0)}%</span></div>
               <div>P(Win): <span class="text-gray-200 font-semibold">${(s.p_win * 100).toFixed(0)}%</span></div>
               <div>Quality: <span class="text-gray-200 font-semibold">${s.quality.toFixed(0)}</span></div>
-              <div>Kelly: <span class="text-blue-400 font-semibold">${s.kelly_pct}%</span></div>
+              <div>Kelly: <span class="text-blue-400 font-semibold">${esc(s.kelly_pct)}%</span></div>
             </div>
           </div>
         `).join("");
@@ -461,7 +477,7 @@ $TATASTEEL positive earnings revision</textarea>
           let color = "text-gray-300";
           if (l.level === "WARNING") color = "text-amber-400";
           if (l.level === "CRITICAL" || l.level === "ERROR") color = "text-rose-400 font-bold";
-          return `<div class="${color}">[${l.timestamp}] [${l.level}] ${l.message}</div>`;
+          return `<div class="${color}">[${esc(l.timestamp)}] [${esc(l.level)}] ${esc(l.message)}</div>`;
         }).join("");
       }
     }
@@ -479,11 +495,7 @@ $TATASTEEL positive earnings revision</textarea>
       feedback.className = "text-[11px] text-blue-400 mt-2";
 
       try {
-        const res = await fetch("/api/execute_cycle", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ symbol, price, rvol, tweets, time_str: timeStr })
-        });
+        const res = await apiPost("/api/execute_cycle", { symbol, price, rvol, tweets, time_str: timeStr });
         const data = await res.json();
         if (data.success) {
           feedback.innerText = `✅ Order Executed: ${data.symbol} filled!`;
@@ -505,11 +517,7 @@ $TATASTEEL positive earnings revision</textarea>
       btn.disabled = true;
 
       try {
-        const res = await fetch("/api/run_backtest", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ total_candles: 500 })
-        });
+        const res = await apiPost("/api/run_backtest", { total_candles: 500 });
         const data = await res.json();
 
         document.getElementById("bt-sharpe").innerText = data.sharpe_ratio.toFixed(2) + (data.gate_sharpe_passed ? " ✅" : " ❌");
@@ -536,7 +544,7 @@ $TATASTEEL positive earnings revision</textarea>
 
     async function toggleBot() {
       try {
-        await fetch("/api/toggle_bot", { method: "POST" });
+        await apiPost("/api/toggle_bot");
         fetchStatus();
       } catch (err) {
         alert("Failed to toggle bot: " + err);
@@ -546,11 +554,7 @@ $TATASTEEL positive earnings revision</textarea>
     async function triggerKillSwitch() {
       if (confirm("Are you sure? This will FLATTEN all open positions and HALT the system.")) {
         try {
-          await fetch("/api/kill_switch", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ reason: "Emergency Button Clicked in Web UI" })
-          });
+          await apiPost("/api/kill_switch", { reason: "Emergency Button Clicked in Web UI" });
           fetchStatus();
         } catch (err) {
           alert("Kill switch error: " + err);
@@ -559,8 +563,11 @@ $TATASTEEL positive earnings revision</textarea>
     }
 
     async function unlockSystem() {
+      const typed = prompt("Unlocking re-arms trading. Type UNLOCK to confirm.");
+      if (typed !== "UNLOCK") return;
       try {
-        await fetch("/api/unlock", { method: "POST" });
+        const res = await apiPost("/api/unlock", { confirm: typed });
+        if (!res.ok) alert("Unlock refused: " + (await res.json()).message);
         fetchStatus();
       } catch (err) {
         alert("Unlock error: " + err);
@@ -570,7 +577,7 @@ $TATASTEEL positive earnings revision</textarea>
     async function resetAccount() {
       if (confirm("Reset account back to ₹1,00,000 clean slate?")) {
         try {
-          await fetch("/api/reset_account", { method: "POST" });
+          await apiPost("/api/reset_account");
           fetchStatus();
         } catch (err) {
           alert("Reset error: " + err);
