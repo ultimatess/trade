@@ -40,3 +40,10 @@ The `reflex` and `risk` fixtures are pinned to the frozen legacy oracle and neve
 ### paper_cycle
 - cash 99990.94 → 99990.94; equity 99990.94 → 99990.94; trades 1 → 1; brier 0.0 → 0.516961
 
+
+## D-006 — drawdown, net daily loss, session reset, flatten on breach (Phase 2, step 2.5)
+
+**Defect:** the 6% drawdown limit was not enforced; daily loss summed losing realized trades only, ignored open-position losses, and never reset; a breach did not flatten.
+**Fix:** `check_portfolio` (every cycle) halts on net daily loss (`day_start_equity − equity`, realized + unrealized) ≥ ₹2,000 or on drawdown from the high-water mark ≥ 6%. Daily counters reset at each IST session. On a halt the pipeline flattens open positions (exit reason `RISK_HALT`).
+**Semantic change:** the daily limit is now **net**, so winning trades offset losing ones. Under the legacy gross rule, a day of +₹1,000 and −₹2,100 halted; now it does not (net −₹1,100).
+**Golden effect: none.** After the D-001 fix, no recorded scenario reaches either limit (max drawdown in the backtests is ≤ 0.22%, and no run is down ₹2,000 net). The new behaviour is covered by `tests/risk/test_portfolio_limits.py`.

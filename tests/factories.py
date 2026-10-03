@@ -54,12 +54,16 @@ def intent(symbol="INFY", quantity=10, price=1600.0, **kw):
     return OrderIntent(**{**base, **kw})
 
 
-def portfolio(cash=100_000.0, equity=None, open_symbols=(), daily_loss=0.0, as_of=1000.0):
+def portfolio(cash=100_000.0, equity=None, open_symbols=(), daily_loss=0.0, as_of=1000.0, high_water_mark=None):
+    """`daily_loss` is the net loss today (day_start_equity - equity, incl. unrealized)."""
+    eq = cash if equity is None else equity
     return PortfolioView(
         as_of=as_of,
         cash=cash,
-        equity=cash if equity is None else equity,
+        equity=eq,
         open_positions=len(open_symbols),
         open_symbols=frozenset(open_symbols),
-        daily_realized_loss=daily_loss,
+        daily_realized_loss=max(0.0, daily_loss),
+        day_start_equity=eq + daily_loss,
+        high_water_mark=(eq + daily_loss) if high_water_mark is None else high_water_mark,
     )

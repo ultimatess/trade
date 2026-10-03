@@ -26,6 +26,7 @@ logger = logging.getLogger("RiskEngine")
 # Reason codes (machine-readable; never free text)
 KILL_SWITCH_ACTIVE = "KILL_SWITCH_ACTIVE"
 DAILY_LOSS_LIMIT = "DAILY_LOSS_LIMIT"
+MAX_DRAWDOWN = "MAX_DRAWDOWN"
 OUTSIDE_TRADING_WINDOW = "OUTSIDE_TRADING_WINDOW"
 MAX_POSITIONS = "MAX_POSITIONS"
 DUPLICATE_POSITION = "DUPLICATE_POSITION"
@@ -107,14 +108,23 @@ class RiskEngine:
         try:
             if self.is_kill_switch_active():
                 return (KILL_SWITCH_ACTIVE,)
-            if not math.isfinite(portfolio.daily_realized_loss):
-                self.trigger_kill_switch("Portfolio state invalid (non-finite daily loss)")
+            values = (portfolio.equity, portfolio.day_start_equity, portfolio.high_water_mark)
+            if not all(math.isfinite(v) for v in values) or portfolio.high_water_mark <= 0:
+                self.trigger_kill_switch("Portfolio state invalid (non-finite equity, day start or high-water mark)")
                 return (MISSING_INPUT,)
-            if portfolio.daily_realized_loss >= self.limits.max_daily_loss_inr:
+            # D-006: net daily loss including unrealized P&L, and drawdown from the high-water mark
+            if portfolio.daily_loss >= self.limits.max_daily_loss_inr:
                 self.trigger_kill_switch(
-                    f"Daily loss ₹{portfolio.daily_realized_loss} breached limit ₹{self.limits.max_daily_loss_inr}"
+                    f"Daily loss ₹{portfolio.daily_loss:,.2f} (realized + unrealized) breached "
+                    f"limit ₹{self.limits.max_daily_loss_inr:,.2f}"
                 )
                 return (DAILY_LOSS_LIMIT,)
+            if portfolio.drawdown_pct >= self.limits.max_drawdown_pct:
+                self.trigger_kill_switch(
+                    f"Drawdown {portfolio.drawdown_pct:.2%} from high-water mark ₹{portfolio.high_water_mark:,.2f} "
+                    f"breached limit {self.limits.max_drawdown_pct:.0%}"
+                )
+                return (MAX_DRAWDOWN,)
             return ()
         except Exception as e:  # noqa: BLE001 - fail closed on any error
             logger.critical(f"Portfolio check failed ({e}); engaging kill switch")

@@ -9,7 +9,7 @@ Backtest, paper and (later) live differ only in the ExecutionAdapter and data so
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Literal, Protocol
+from typing import Any, Literal, Protocol
 
 from trade.core.execution.intent import OrderIntent
 from trade.core.execution.models import Order
@@ -23,6 +23,8 @@ Step = Literal["RISK_HALTED", "NO_SIGNAL", "SIZING_REJECTED", "RISK_DENIED", "OR
 
 class ExecutionAdapter(Protocol):
     def submit_intent(self, intent: OrderIntent, current_price: float, current_time: float) -> Order | None: ...
+
+    def flatten_all(self, current_prices: dict[str, float], current_time: float, reason: str = ...) -> list[Any]: ...
 
 
 @dataclass(frozen=True)
@@ -44,6 +46,9 @@ class DecisionPipeline:
     def process(self, obs: Observation, portfolio: PortfolioView, executor: ExecutionAdapter) -> PipelineResult:
         halt = self.risk.check_portfolio(portfolio)
         if halt:
+            # Global kill policy: flatten immediately (docs/RISK_ARCHITECTURE.md section 6)
+            if portfolio.open_positions:
+                executor.flatten_all({obs.symbol: obs.market.last_price}, obs.as_of, reason="RISK_HALT")
             return PipelineResult("RISK_HALTED", reason_codes=halt)
 
         decision = self.strategy.validate(self.strategy.on_observation(obs), obs)

@@ -7,7 +7,9 @@ fills or gaps. Long-only, cash-funded (no leverage).
 
 import logging
 import uuid
+from datetime import date, datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from trade.core.config import config
 from trade.core.execution.charges import IndianTaxCalculator
@@ -18,6 +20,7 @@ from trade.core.portfolio.models import Position
 from trade.core.portfolio.view import PortfolioView
 
 logger = logging.getLogger("PaperBroker")
+IST = ZoneInfo("Asia/Kolkata")
 
 
 class IndianPaperBroker:
@@ -29,6 +32,9 @@ class IndianPaperBroker:
         self.open_orders: dict[str, Order] = {}
         self.trade_history: list[TradeResult] = []
         self.position_meta: dict[str, dict[str, Any]] = {}
+        self.session_date: date | None = None
+        self.day_start_equity: float = initial_capital
+        self.high_water_mark: float = initial_capital
         self.daily_realized_loss: float = 0.0
         self.daily_realized_pnl: float = 0.0
 
@@ -43,15 +49,29 @@ class IndianPaperBroker:
         meta = self.position_meta.get(symbol)
         return str(meta["signal_id"]) if meta else None
 
+    def roll_session(self, as_of: float) -> None:
+        """Start a new IST trading day: reset daily counters and the day's starting equity (D-006)."""
+        day = datetime.fromtimestamp(as_of, IST).date()
+        if day != self.session_date:
+            self.session_date = day
+            self.day_start_equity = self.total_equity
+            self.daily_realized_loss = 0.0
+            self.daily_realized_pnl = 0.0
+
     def portfolio_view(self, as_of: float) -> PortfolioView:
+        self.roll_session(as_of)
+        equity = self.total_equity
+        self.high_water_mark = max(self.high_water_mark, equity)
         active = [p for p in self.positions.values() if p.is_active]
         return PortfolioView(
             as_of=as_of,
             cash=self.cash,
-            equity=self.total_equity,
+            equity=equity,
             open_positions=len(active),
             open_symbols=frozenset(p.symbol for p in active),
             daily_realized_loss=self.daily_realized_loss,
+            day_start_equity=self.day_start_equity,
+            high_water_mark=self.high_water_mark,
         )
 
     def submit_intent(self, intent: OrderIntent, current_price: float, current_time: float) -> Order | None:

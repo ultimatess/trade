@@ -11,7 +11,7 @@ Defects that change strategy, risk or backtest **outputs** stay in place during 
 | D-003 | Calibration map is hard-coded, not empirical | Open — Phase 2 (v1 keeps it for parity; Kelly is disabled for uncalibrated strategies) |
 | D-004 | Kelly payoff `b = 0.75` assumes ₹54.26 friction; the code computes ₹21.34 | Open — Phase 2 |
 | D-005 | Docs claimed flat ₹20 + ₹20 brokerage; the code uses `min(₹20, 0.03%)` | **Docs corrected** (Phase 1). Which model is right for the operator's broker is still to be decided |
-| D-006 | Max drawdown (6%) not enforced; daily loss ignores unrealized P&L and never resets | Open — Phase 2. The 6% limit is configured |
+| D-006 | Max drawdown (6%) not enforced; daily loss ignores unrealized P&L and never resets | **Fixed** (Phase 2, step 2.5). Daily limit is now net (realized + unrealized) |
 | D-007 | Kill-switch lockfile was cwd-relative; a write failure was swallowed (fail-open) | **Fixed** (Phase 1, task 6) |
 | D-008 | Circular synthetic backtest presented as a passing validation gate | **Relabelled** "NOT EVIDENCE" (Phase 1); replaced in Phase 3 |
 | D-009 | Positions keyed by symbol only; no strategy ownership; long-only | Open — Phase 3/7 |
