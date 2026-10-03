@@ -1,0 +1,58 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: format, lint, typecheck, tests (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen --python ${{ matrix.python }}
+      - name: format
+        run: uv run --frozen ruff format --check .
+      - name: lint
+        run: uv run --frozen ruff check .
+      - name: import contracts
+        run: uv run --frozen lint-imports
+      - name: typecheck
+        run: uv run --frozen mypy
+      - name: tests
+        run: uv run --frozen pytest
+      - name: build
+        run: uv build
+
+  critical:
+    # Make this job a REQUIRED status check in branch protection: any failure blocks merge.
+    name: critical safety tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen
+      - run: uv run --frozen pytest -m critical -v
+
+  secrets:
+    name: secret scan
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: "8.18.4"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: install gitleaks
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar -xz gitleaks
+      - name: scan full history
+        run: ./gitleaks detect --source . --redact --verbose --exit-code 1
