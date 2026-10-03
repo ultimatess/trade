@@ -9,6 +9,7 @@ class CalibrationEngine:
 
     def __init__(self) -> None:
         self.history: list[tuple[float, int]] = []  # (forecast_prob, outcome 0 or 1)
+        self.pending: dict[str, float] = {}  # signal_id -> forecast made at entry
         # Empirical piecewise calibration table: {forecast_bucket: actual_win_rate}
         self.calibration_map: dict[float, float] = {
             0.50: 0.45,
@@ -24,6 +25,16 @@ class CalibrationEngine:
     def record_outcome(self, forecast_prob: float, outcome: int) -> None:
         """Stores decision prediction and binary outcome (1=win, 0=loss)."""
         self.history.append((forecast_prob, outcome))
+
+    def register_forecast(self, signal_id: str, forecast: float) -> None:
+        """Remember the forecast a strategy made when its signal was filled."""
+        self.pending[signal_id] = forecast
+
+    def resolve(self, signal_id: str | None, net_pnl: float) -> None:
+        """Record (forecast at entry, outcome) when the trade from that signal closes (D-002)."""
+        forecast = self.pending.pop(signal_id, None) if signal_id else None
+        if forecast is not None:
+            self.record_outcome(forecast, 1 if net_pnl > 0 else 0)
 
     def compute_brier_score(self) -> float:
         """Computes current Brier calibration score (closer to 0 is better)."""

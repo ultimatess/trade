@@ -119,10 +119,10 @@ class SystemStateHolder:
             self.log(f"Evaluating {symbol} @ ₹{price:.2f} ({time_str} IST)...")
 
             # 1. Update existing positions
+            signal_id = self.broker.signal_id_for(symbol)
             exit_result = self.broker.update_price_tick(symbol, price, ts)
             if exit_result:
-                outcome = 1 if exit_result.net_pnl > 0 else 0
-                self.calibration_engine.record_outcome(config.MIN_CALIBRATED_PROBABILITY, outcome)
+                self.calibration_engine.resolve(signal_id, exit_result.net_pnl)  # forecast at entry (D-002)
                 self.log(f"Position exit [{exit_result.exit_reason}] on {symbol}: Net P&L ₹{exit_result.net_pnl:+.2f}")
 
             # 2. Extract social signal
@@ -166,6 +166,9 @@ class SystemStateHolder:
             reasons = list(result.reason_codes)
             if result.step == "ORDER_FILLED":
                 order = result.orders[0]
+                for sig in result.decision.signals if result.decision else ():
+                    if sig.confidence is not None:
+                        self.calibration_engine.register_forecast(sig.signal_id, sig.confidence)
                 self.log(f"ORDER FILLED: {symbol} Qty {order.quantity} @ ₹{order.price:.2f} (bracket +1% / -0.7%)")
                 return {"success": True, "step": "ORDER_FILLED", "order_id": order.client_order_id, "symbol": symbol}
             label = {
@@ -195,7 +198,10 @@ class SystemStateHolder:
         with self.lock:
             self.risk_engine.trigger_kill_switch(reason)
             current_prices = {s: p.current_price for s, p in self.broker.positions.items()}
+            signal_ids = {s: self.broker.signal_id_for(s) for s in self.broker.positions}
             flattened = self.broker.flatten_all(current_prices, time.time(), reason="KILL_SWITCH")
+            for trade in flattened:
+                self.calibration_engine.resolve(signal_ids.get(trade.symbol), trade.net_pnl)
             self.bot_running = False
             self.log(f"KILL SWITCH TRIGGERED: {reason}. Flattened {len(flattened)} open positions.", level="CRITICAL")
 

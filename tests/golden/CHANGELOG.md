@@ -30,3 +30,13 @@ The `reflex` and `risk` fixtures are pinned to the frozen legacy oracle and neve
 ### paper_cycle
 - cash 108532.61 → 99990.94; equity 108532.61 → 99990.94; trades 1 → 1; brier 0.0 → 0.0
 
+
+## D-002 — calibration records the actual forecast (Phase 2, step 2.4)
+
+**Defect:** every closed trade was recorded against the constant 0.65, and square-off/kill exits were not recorded at all, so the Brier score measured nothing.
+**Fix:** the strategy score at entry (`Signal.confidence`) is registered per signal and paired with that trade's outcome on every exit path (bracket, timeout, EOD square-off, kill-switch flatten).
+**Note:** v1's score is uncalibrated; this Brier score measures how poor it is as a probability, which is exactly what calibration tracking is for.
+
+### paper_cycle
+- cash 99990.94 → 99990.94; equity 99990.94 → 99990.94; trades 1 → 1; brier 0.0 → 0.516961
+

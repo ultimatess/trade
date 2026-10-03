@@ -38,6 +38,11 @@ class IndianPaperBroker:
         market_value = sum(pos.current_price * pos.quantity for pos in self.positions.values() if pos.is_active)
         return self.cash + market_value
 
+    def signal_id_for(self, symbol: str) -> str | None:
+        """Signal that opened the current/last position in `symbol` (for forecast/outcome pairing)."""
+        meta = self.position_meta.get(symbol)
+        return str(meta["signal_id"]) if meta else None
+
     def portfolio_view(self, as_of: float) -> PortfolioView:
         active = [p for p in self.positions.values() if p.is_active]
         return PortfolioView(

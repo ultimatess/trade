@@ -53,15 +53,19 @@ class QuantTradingSystem:
         # Step 1: EOD Mandatory Square-Off Check
         if simulated_time_str >= config.MANDATORY_SQUAREOFF:
             logger.warning("15:10 IST MANDATORY EOD SQUARE-OFF REACHED. Flattening open exposure.")
-            self.broker.flatten_all(current_prices={symbol: current_price}, current_time=ts, reason="EOD_SQUAREOFF")
+            signal_ids = {s: self.broker.signal_id_for(s) for s in self.broker.positions}
+            for trade in self.broker.flatten_all(
+                current_prices={symbol: current_price}, current_time=ts, reason="EOD_SQUAREOFF"
+            ):
+                self.calibration_engine.resolve(signal_ids.get(trade.symbol), trade.net_pnl)
             return
 
         # Step 2: Check Active Positions & Update Trailing Brackets
+        signal_id = self.broker.signal_id_for(symbol)
         exit_result = self.broker.update_price_tick(symbol, current_price, ts)
         if exit_result:
-            # Feed back result to calibration engine
-            outcome = 1 if exit_result.net_pnl > 0 else 0
-            self.calibration_engine.record_outcome(config.MIN_CALIBRATED_PROBABILITY, outcome)
+            # Pair the exit with the forecast made at entry (D-002)
+            self.calibration_engine.resolve(signal_id, exit_result.net_pnl)
             logger.info(f"Position Closed. Brier Score updated: {self.calibration_engine.compute_brier_score():.4f}")
 
         # Step 3: Ingest Social Sentiment (Extract pure numeric signal)
@@ -94,7 +98,11 @@ class QuantTradingSystem:
                 f"STRATEGY {self.strategy.strategy_id} v{self.strategy.version}: P(Organic)={d['p_organic']:.2f} | "
                 f"P(Win) score (uncalibrated)={d['p_win_calibrated']:.2f} | Quality={d['setup_quality']:.1f}"
             )
-        if result.step == "ORDER_FILLED":
+        if result.step == "ORDER_FILLED" and result.decision:
+            filled = {i.signal_id for i in result.intents}
+            for sig in result.decision.signals:
+                if sig.signal_id in filled and sig.confidence is not None:
+                    self.calibration_engine.register_forecast(sig.signal_id, sig.confidence)
             for order in result.orders:
                 logger.info(f"ORDER DISPATCHED: ClientOrderID={order.client_order_id} Symbol={symbol}")
         else:

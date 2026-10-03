@@ -1,5 +1,5 @@
 {
- "brier": 0.0,
+ "brier": 0.516961,
  "broker": {
   "cash": 99990.94,
   "daily_realized_loss": 9.06,
@@ -32,5 +32,10 @@
    }
   ]
  },
- "calibration_history": []
+ "calibration_history": [
+  [
+   0.719,
+   0
+  ]
+ ]
 }
