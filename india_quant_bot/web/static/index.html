@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autonomous Quant Trading System | NSE Intraday</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: #0b0f19;
+      color: #e2e8f0;
+    }
+    .panel {
+      background: #111827;
+      border: 1px solid #1f2937;
+    }
+    .panel-accent {
+      background: #131d31;
+      border: 1px solid #2563eb44;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0b0f19;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #374151;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-6 custom-scrollbar">
+
+  <!-- TOP HEADER & CONTROLS -->
+  <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 pb-4 border-b border-gray-800">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+          <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+          QUANTUM REFLEX // NSE SCALPER
+        </h1>
+        <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold border border-blue-500/40 bg-blue-500/10 text-blue-400">
+          3-LAYER DETERMINISTIC CORE
+        </span>
+      </div>
+      <p class="text-xs text-gray-400 mt-1">
+        ₹1,00,000 Portfolio • Twitter/Social Momentum 1% Scalp • 15:10 IST EOD Square-off
+      </p>
+    </div>
+
+    <!-- GLOBAL ACTION BUTTONS -->
+    <div class="flex flex-wrap items-center gap-2">
+      <div id="status-pill" class="px-3 py-1 rounded text-xs font-semibold bg-emerald-950 text-emerald-400 border border-emerald-700/50">
+        🟢 ARMED & READY
+      </div>
+      <div id="bot-status-pill" class="px-3 py-1 rounded text-xs font-semibold bg-gray-800 text-gray-400 border border-gray-700">
+        BOT: IDLE
+      </div>
+
+      <button onclick="toggleBot()" id="btn-toggle-bot" class="px-3 py-1.5 rounded text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition shadow-sm">
+        ⚡ START AUTO BOT
+      </button>
+
+      <button onclick="triggerKillSwitch()" class="px-3 py-1.5 rounded text-xs font-bold bg-rose-700 hover:bg-rose-600 text-white transition shadow-sm flex items-center gap-1.5">
+        🛑 EMERGENCY KILL SWITCH
+      </button>
+
+      <button onclick="unlockSystem()" class="px-2.5 py-1.5 rounded text-xs font-medium bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition">
+        🔓 UNLOCK
+      </button>
+
+      <button onclick="resetAccount()" class="px-2.5 py-1.5 rounded text-xs font-medium bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition">
+        🔄 RESET
+      </button>
+    </div>
+  </header>
+
+  <!-- KEY METRIC CARDS -->
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+    <div class="panel p-3.5 rounded-lg">
+      <div class="text-[11px] text-gray-400 uppercase tracking-wider">Portfolio NAV</div>
+      <div class="text-lg md:text-xl font-bold text-white mt-1" id="val-nav">₹1,00,000.00</div>
+      <div class="text-[10px] text-emerald-400 mt-0.5" id="val-nav-diff">+₹0.00 (0.00%)</div>
+    </div>
+
+    <div class="panel p-3.5 rounded-lg">
+      <div class="text-[11px] text-gray-400 uppercase tracking-wider">Available Cash</div>
+      <div class="text-lg md:text-xl font-bold text-white mt-1" id="val-cash">₹1,00,000.00</div>
+      <div class="text-[10px] text-gray-500 mt-0.5">Sizing Cap: ₹20,000/trade</div>
+    </div>
+
+    <div class="panel p-3.5 rounded-lg">
+      <div class="text-[11px] text-gray-400 uppercase tracking-wider">Today's Net P&L</div>
+      <div class="text-lg md:text-xl font-bold text-white mt-1" id="val-daily-pnl">₹0.00</div>
+      <div class="text-[10px] text-gray-400 mt-0.5">After Indian statutory taxes</div>
+    </div>
+
+    <div class="panel p-3.5 rounded-lg">
+      <div class="text-[11px] text-gray-400 uppercase tracking-wider">Daily Loss Incurred</div>
+      <div class="text-lg md:text-xl font-bold text-white mt-1" id="val-daily-loss">₹0.00</div>
+      <div class="text-[10px] text-rose-400 mt-0.5">Limit: ₹2,000.00 (Kill gate)</div>
+    </div>
+
+    <div class="panel p-3.5 rounded-lg">
+      <div class="text-[11px] text-gray-400 uppercase tracking-wider">Brier Calibration</div>
+      <div class="text-lg md:text-xl font-bold text-white mt-1" id="val-brier">0.0000</div>
+      <div class="text-[10px] text-blue-400 mt-0.5">Venue Reliability Score</div>
+    </div>
+
+    <div class="panel p-3.5 rounded-lg">
+      <div class="text-[11px] text-gray-400 uppercase tracking-wider">Total Trades</div>
+      <div class="text-lg md:text-xl font-bold text-white mt-1" id="val-trades-count">0</div>
+      <div class="text-[10px] text-gray-400 mt-0.5" id="val-win-rate">Win Rate: 0.0%</div>
+    </div>
+  </div>
+
+  <!-- MAIN OPERATIONAL WORKSPACE: 3 COLUMNS -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6">
+    
+    <!-- LEFT: MANUAL SIGNAL INJECTOR & CYCLE TESTER (4 COLS) -->
+    <div class="lg:col-span-4 panel p-4 rounded-xl flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-gray-800">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+            <span>🎯</span> Signal & Cycle Injector
+          </h2>
+          <span class="text-[10px] bg-gray-800 text-gray-300 px-2 py-0.5 rounded">Manual Testing</span>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Target Symbol (NSE Liquid Universe)</label>
+            <select id="input-symbol" class="w-full bg-gray-900 border border-gray-700 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500" onchange="autoFillPrice()">
+              <option value="TATASTEEL" data-price="156.40">TATASTEEL (Metal / ₹156.40)</option>
+              <option value="RELIANCE" data-price="2480.00">RELIANCE (Energy / ₹2,480.00)</option>
+              <option value="ZOMATO" data-price="162.50">ZOMATO (Tech / ₹162.50)</option>
+              <option value="INFY" data-price="1580.00">INFY (IT / ₹1,580.00)</option>
+              <option value="HDFCBANK" data-price="1440.00">HDFCBANK (Banking / ₹1,440.00)</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Price (₹)</label>
+              <input type="number" step="0.05" id="input-price" value="156.40" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs text-white">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Relative Vol ($V_{rel}$)</label>
+              <input type="number" step="0.1" id="input-rvol" value="4.2" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs text-white">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Simulated Social Stream ($Cashtag Tweets)</label>
+            <textarea id="input-tweets" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white custom-scrollbar focus:outline-none focus:border-blue-500">$TATASTEEL massive volume breakout on delivery buying
+$TATASTEEL institutional accumulation above 155
+$TATASTEEL positive earnings revision</textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Time (IST)</label>
+            <input type="text" id="input-time" value="11:15" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs text-white">
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-4 mt-2">
+        <button onclick="executeSingleCycle()" class="w-full py-2 rounded text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center justify-center gap-1.5">
+          <span>🚀</span> EXECUTE TRADING LOOP CYCLE
+        </button>
+        <div id="cycle-feedback" class="text-[11px] text-gray-400 mt-2 min-h-[20px] text-center"></div>
+      </div>
+    </div>
+
+    <!-- MIDDLE: 2-YEAR HISTORICAL BACKTEST GATE RUNNER (4 COLS) -->
+    <div class="lg:col-span-4 panel p-4 rounded-xl flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-gray-800">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+            <span>📊</span> Backtest Gate Validator
+          </h2>
+          <span class="text-[10px] bg-purple-950 text-purple-300 border border-purple-800/40 px-2 py-0.5 rounded">
+            Out-of-Sample Harness
+          </span>
+        </div>
+
+        <p class="text-xs text-gray-400 mb-3">
+          Simulates 500 multi-regime candles across Trending, Choppy, and Bot Pump-and-Dump environments with full Indian statutory friction.
+        </p>
+
+        <!-- BACKTEST GATE CHECKLIST -->
+        <div class="space-y-2 mb-4 text-xs">
+          <div class="flex justify-between items-center p-2 rounded bg-gray-900/60 border border-gray-800" id="gate-sharpe-box">
+            <span class="text-gray-400">Sharpe Ratio (&ge; 1.50):</span>
+            <span class="font-bold text-gray-300" id="bt-sharpe">--</span>
+          </div>
+          <div class="flex justify-between items-center p-2 rounded bg-gray-900/60 border border-gray-800" id="gate-dd-box">
+            <span class="text-gray-400">Max Drawdown (&le; 15.0%):</span>
+            <span class="font-bold text-gray-300" id="bt-maxdd">--</span>
+          </div>
+          <div class="flex justify-between items-center p-2 rounded bg-gray-900/60 border border-gray-800" id="gate-hit-box">
+            <span class="text-gray-400">Hit Rate (&ge; 55.0%):</span>
+            <span class="font-bold text-gray-300" id="bt-hitrate">--</span>
+          </div>
+          <div class="flex justify-between items-center p-2 rounded bg-gray-900/60 border border-gray-800" id="gate-tstat-box">
+            <span class="text-gray-400">t-statistic (&ge; 2.00):</span>
+            <span class="font-bold text-gray-300" id="bt-tstat">--</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div id="bt-overall-banner" class="text-center text-xs font-semibold py-1.5 px-2 rounded mb-2 bg-gray-900 text-gray-500 border border-gray-800">
+          AWAITING BACKTEST EXECUTION
+        </div>
+        <button onclick="runBacktest()" id="btn-run-backtest" class="w-full py-2 rounded text-xs font-bold bg-purple-700 hover:bg-purple-600 text-white transition flex items-center justify-center gap-1.5">
+          <span>⚡</span> RUN MULTI-REGIME SIMULATION
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: FAST REFLEX SIGNALS & REGIME INSPECTOR (4 COLS) -->
+    <div class="lg:col-span-4 panel p-4 rounded-xl flex flex-col">
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-gray-800">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+          <span>🧠</span> Fast Reflex Telemetry
+        </h2>
+        <span class="text-[10px] bg-amber-950 text-amber-300 border border-amber-800/40 px-2 py-0.5 rounded">
+          Sub-Second Layer
+        </span>
+      </div>
+
+      <div class="flex-1 overflow-y-auto max-h-[300px] custom-scrollbar space-y-2" id="signals-container">
+        <div class="text-center text-xs text-gray-500 py-10">
+          No live reflex evaluations recorded yet.<br>Click "Execute Trading Loop Cycle" or start auto-bot.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOWER ROW: ACTIVE POSITIONS & TRADE LOG -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6">
+    
+    <!-- ACTIVE POSITIONS TABLE (6 COLS) -->
+    <div class="lg:col-span-6 panel p-4 rounded-xl">
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-gray-800">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+          <span>💼</span> Active Positions (OCO Brackets)
+        </h2>
+        <span class="text-[10px] text-gray-400">Max 2 Positions</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead>
+            <tr class="text-gray-400 border-b border-gray-800">
+              <th class="pb-2">Symbol</th>
+              <th class="pb-2">Qty</th>
+              <th class="pb-2">Entry</th>
+              <th class="pb-2 text-emerald-400">Target (+1%)</th>
+              <th class="pb-2 text-rose-400">Stop (-0.7%)</th>
+              <th class="pb-2 text-right">P&L</th>
+            </tr>
+          </thead>
+          <tbody id="positions-table-body" class="divide-y divide-gray-800/50">
+            <tr>
+              <td colspan="6" class="py-6 text-center text-gray-500">
+                No active positions. Cash protected.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RECENT TRADE EXECUTIONS & TAX AUDIT (6 COLS) -->
+    <div class="lg:col-span-6 panel p-4 rounded-xl">
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-gray-800">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+          <span>📜</span> Executed Trades & Statutory Audit
+        </h2>
+        <span class="text-[10px] text-gray-400">STT, GST, NSE Charges Deducted</span>
+      </div>
+
+      <div class="overflow-x-auto max-h-[220px] custom-scrollbar">
+        <table class="w-full text-left text-xs">
+          <thead>
+            <tr class="text-gray-400 border-b border-gray-800">
+              <th class="pb-2">Time</th>
+              <th class="pb-2">Symbol</th>
+              <th class="pb-2">Exit</th>
+              <th class="pb-2">Gross P&L</th>
+              <th class="pb-2">Charges</th>
+              <th class="pb-2 text-right">Net P&L</th>
+            </tr>
+          </thead>
+          <tbody id="trades-table-body" class="divide-y divide-gray-800/50">
+            <tr>
+              <td colspan="6" class="py-6 text-center text-gray-500">
+                No closed trades yet in this session.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: REAL-TIME AUDIT LOG TERMINAL -->
+  <div class="panel p-4 rounded-xl">
+    <div class="flex items-center justify-between pb-2 mb-2 border-b border-gray-800">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
+        <span>💻</span> Deterministic Event & Risk Audit Log
+      </h2>
+      <span class="text-[10px] text-gray-500" id="server-timestamp">Auto-refreshed</span>
+    </div>
+    <div id="terminal-logs" class="h-44 overflow-y-auto font-mono text-[11px] space-y-1 bg-black/40 p-3 rounded custom-scrollbar text-gray-300">
+      <div class="text-gray-500">[SYSTEM] Terminal initialized. Awaiting commands...</div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    function autoFillPrice() {
+      const select = document.getElementById("input-symbol");
+      const price = select.options[select.selectedIndex].getAttribute("data-price");
+      if (price) {
+        document.getElementById("input-price").value = price;
+      }
+    }
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch("/api/status");
+        if (!res.ok) return;
+        const data = await res.json();
+        renderDashboard(data);
+      } catch (err) {
+        console.error("Status fetch failed:", err);
+      }
+    }
+
+    function renderDashboard(data) {
+      // 1. Header and Status Pills
+      const statusPill = document.getElementById("status-pill");
+      if (data.kill_switch_active) {
+        statusPill.className = "px-3 py-1 rounded text-xs font-semibold bg-rose-950 text-rose-400 border border-rose-700/50";
+        statusPill.innerText = "🛑 HALTED (KILL SWITCH)";
+      } else {
+        statusPill.className = "px-3 py-1 rounded text-xs font-semibold bg-emerald-950 text-emerald-400 border border-emerald-700/50";
+        statusPill.innerText = "🟢 ACTIVE & ARMED";
+      }
+
+      const botPill = document.getElementById("bot-status-pill");
+      const btnBot = document.getElementById("btn-toggle-bot");
+      if (data.bot_running) {
+        botPill.className = "px-3 py-1 rounded text-xs font-semibold bg-blue-950 text-blue-400 border border-blue-700/50";
+        botPill.innerText = "BOT: RUNNING";
+        btnBot.innerText = "⏸️ STOP AUTO BOT";
+        btnBot.className = "px-3 py-1.5 rounded text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white transition";
+      } else {
+        botPill.className = "px-3 py-1 rounded text-xs font-semibold bg-gray-800 text-gray-400 border border-gray-700";
+        botPill.innerText = "BOT: IDLE";
+        btnBot.innerText = "⚡ START AUTO BOT";
+        btnBot.className = "px-3 py-1.5 rounded text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition";
+      }
+
+      // 2. Metrics Cards
+      document.getElementById("val-nav").innerText = "₹" + data.total_equity.toLocaleString('en-IN', {minimumFractionDigits: 2});
+      const navDiff = data.total_equity - data.starting_capital;
+      const navDiffPct = ((navDiff / data.starting_capital) * 100).toFixed(2);
+      const navDiffElem = document.getElementById("val-nav-diff");
+      navDiffElem.innerText = (navDiff >= 0 ? "+" : "") + "₹" + navDiff.toLocaleString('en-IN', {minimumFractionDigits: 2}) + ` (${navDiffPct}%)`;
+      navDiffElem.className = navDiff >= 0 ? "text-[10px] text-emerald-400 mt-0.5" : "text-[10px] text-rose-400 mt-0.5";
+
+      document.getElementById("val-cash").innerText = "₹" + data.cash.toLocaleString('en-IN', {minimumFractionDigits: 2});
+      
+      const pnlElem = document.getElementById("val-daily-pnl");
+      pnlElem.innerText = (data.daily_realized_pnl >= 0 ? "+" : "") + "₹" + data.daily_realized_pnl.toLocaleString('en-IN', {minimumFractionDigits: 2});
+      pnlElem.className = data.daily_realized_pnl >= 0 ? "text-lg md:text-xl font-bold text-emerald-400 mt-1" : "text-lg md:text-xl font-bold text-rose-400 mt-1";
+
+      document.getElementById("val-daily-loss").innerText = "₹" + data.daily_realized_loss.toLocaleString('en-IN', {minimumFractionDigits: 2});
+      document.getElementById("val-brier").innerText = data.brier_score.toFixed(4);
+      document.getElementById("val-trades-count").innerText = data.trades.length;
+
+      if (data.trades.length > 0) {
+        const wins = data.trades.filter(t => t.net_pnl > 0).length;
+        const wr = ((wins / data.trades.length) * 100).toFixed(1);
+        document.getElementById("val-win-rate").innerText = `Win Rate: ${wr}% (${wins}W/${data.trades.length - wins}L)`;
+      } else {
+        document.getElementById("val-win-rate").innerText = "Win Rate: 0.0%";
+      }
+
+      document.getElementById("server-timestamp").innerText = data.server_time;
+
+      // 3. Active Positions Table
+      const posTable = document.getElementById("positions-table-body");
+      if (data.positions.length === 0) {
+        posTable.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-gray-500">No active positions. Cash protected.</td></tr>`;
+      } else {
+        posTable.innerHTML = data.positions.map(p => `
+          <tr class="hover:bg-gray-800/40">
+            <td class="py-2 font-bold text-white">${p.symbol}</td>
+            <td class="py-2 text-gray-300">${p.quantity}</td>
+            <td class="py-2 text-gray-300">₹${p.entry_price.toFixed(2)}</td>
+            <td class="py-2 text-emerald-400 font-semibold">₹${p.target_price.toFixed(2)}</td>
+            <td class="py-2 text-rose-400 font-semibold">₹${p.stop_loss_price.toFixed(2)}</td>
+            <td class="py-2 text-right font-bold ${p.gross_unrealized_pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+              ${p.gross_unrealized_pnl >= 0 ? '+' : ''}₹${p.gross_unrealized_pnl.toFixed(2)} (${p.pnl_pct > 0 ? '+' : ''}${p.pnl_pct.toFixed(2)}%)
+            </td>
+          </tr>
+        `).join("");
+      }
+
+      // 4. Trades Table
+      const tradesTable = document.getElementById("trades-table-body");
+      if (data.trades.length === 0) {
+        tradesTable.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-gray-500">No closed trades yet in this session.</td></tr>`;
+      } else {
+        tradesTable.innerHTML = data.trades.map(t => `
+          <tr class="hover:bg-gray-800/40">
+            <td class="py-1.5 text-gray-400">${t.exit_time}</td>
+            <td class="py-1.5 font-bold text-white">${t.symbol}</td>
+            <td class="py-1.5"><span class="px-1.5 py-0.5 rounded text-[10px] ${t.exit_reason === 'TAKE_PROFIT' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800/40' : 'bg-rose-950 text-rose-300 border border-rose-800/40'}">${t.exit_reason}</span></td>
+            <td class="py-1.5 ${t.gross_pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">₹${t.gross_pnl.toFixed(2)}</td>
+            <td class="py-1.5 text-gray-400">₹${t.total_charges.toFixed(2)}</td>
+            <td class="py-1.5 text-right font-bold ${t.net_pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${t.net_pnl >= 0 ? '+' : ''}₹${t.net_pnl.toFixed(2)}</td>
+          </tr>
+        `).join("");
+      }
+
+      // 5. Signals Container
+      const signalsContainer = document.getElementById("signals-container");
+      if (data.recent_signals.length > 0) {
+        signalsContainer.innerHTML = data.recent_signals.map(s => `
+          <div class="p-2.5 rounded bg-gray-900 border ${s.passed ? 'border-emerald-800/50' : 'border-gray-800'} text-xs">
+            <div class="flex justify-between items-center mb-1">
+              <span class="font-bold text-white">${s.symbol} <span class="text-gray-500 text-[10px]">(${s.time})</span></span>
+              <span class="px-1.5 py-0.2 rounded text-[10px] ${s.passed ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'}">
+                ${s.passed ? 'PASSED & SIZED' : 'VETOED'}
+              </span>
+            </div>
+            <div class="grid grid-cols-4 gap-1 text-[10px] text-gray-400">
+              <div>Organic: <span class="text-gray-200 font-semibold">${(s.p_organic * 100).toFixed(0)}%</span></div>
+              <div>P(Win): <span class="text-gray-200 font-semibold">${(s.p_win * 100).toFixed(0)}%</span></div>
+              <div>Quality: <span class="text-gray-200 font-semibold">${s.quality.toFixed(0)}</span></div>
+              <div>Kelly: <span class="text-blue-400 font-semibold">${s.kelly_pct}%</span></div>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      // 6. Terminal Logs
+      const terminalElem = document.getElementById("terminal-logs");
+      if (data.recent_logs.length > 0) {
+        terminalElem.innerHTML = data.recent_logs.map(l => {
+          let color = "text-gray-300";
+          if (l.level === "WARNING") color = "text-amber-400";
+          if (l.level === "CRITICAL" || l.level === "ERROR") color = "text-rose-400 font-bold";
+          return `<div class="${color}">[${l.timestamp}] [${l.level}] ${l.message}</div>`;
+        }).join("");
+      }
+    }
+
+    async function executeSingleCycle() {
+      const symbol = document.getElementById("input-symbol").value;
+      const price = parseFloat(document.getElementById("input-price").value);
+      const rvol = parseFloat(document.getElementById("input-rvol").value);
+      const tweetsRaw = document.getElementById("input-tweets").value;
+      const timeStr = document.getElementById("input-time").value;
+      const tweets = tweetsRaw.split("\n").filter(t => t.trim().length > 0);
+
+      const feedback = document.getElementById("cycle-feedback");
+      feedback.innerText = "Executing cycle in engine...";
+      feedback.className = "text-[11px] text-blue-400 mt-2";
+
+      try {
+        const res = await fetch("/api/execute_cycle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ symbol, price, rvol, tweets, time_str: timeStr })
+        });
+        const data = await res.json();
+        if (data.success) {
+          feedback.innerText = `✅ Order Executed: ${data.symbol} filled!`;
+          feedback.className = "text-[11px] text-emerald-400 mt-2 font-bold";
+        } else {
+          feedback.innerText = `⚠️ Cycle Blocked by ${data.step}: ${data.reasons ? data.reasons.join(", ") : ""}`;
+          feedback.className = "text-[11px] text-amber-400 mt-2";
+        }
+        fetchStatus();
+      } catch (err) {
+        feedback.innerText = "Error executing cycle: " + err;
+        feedback.className = "text-[11px] text-rose-400 mt-2";
+      }
+    }
+
+    async function runBacktest() {
+      const btn = document.getElementById("btn-run-backtest");
+      btn.innerText = "⏳ SIMULATING 500 CANDLES...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch("/api/run_backtest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ total_candles: 500 })
+        });
+        const data = await res.json();
+
+        document.getElementById("bt-sharpe").innerText = data.sharpe_ratio.toFixed(2) + (data.gate_sharpe_passed ? " ✅" : " ❌");
+        document.getElementById("bt-maxdd").innerText = data.max_drawdown_pct.toFixed(2) + "%" + (data.gate_max_dd_passed ? " ✅" : " ❌");
+        document.getElementById("bt-hitrate").innerText = data.hit_rate_pct.toFixed(1) + "%" + (data.gate_hit_rate_passed ? " ✅" : " ❌");
+        document.getElementById("bt-tstat").innerText = data.t_statistic.toFixed(2) + (data.gate_t_stat_passed ? " ✅" : " ❌");
+
+        const banner = document.getElementById("bt-overall-banner");
+        if (data.passed_all_gates) {
+          banner.className = "text-center text-xs font-bold py-1.5 px-2 rounded mb-2 bg-emerald-950 text-emerald-300 border border-emerald-700/50";
+          banner.innerText = `🏆 GATES PASSED: ₹${data.net_pnl.toLocaleString('en-IN', {minimumFractionDigits: 2})} Net P&L (${data.wins}W / ${data.losses}L)`;
+        } else {
+          banner.className = "text-center text-xs font-bold py-1.5 px-2 rounded mb-2 bg-rose-950 text-rose-300 border border-rose-700/50";
+          banner.innerText = "❌ FAILED ONE OR MORE GATES";
+        }
+      } catch (err) {
+        alert("Backtest failed: " + err);
+      } finally {
+        btn.innerText = "⚡ RUN MULTI-REGIME SIMULATION";
+        btn.disabled = false;
+        fetchStatus();
+      }
+    }
+
+    async function toggleBot() {
+      try {
+        await fetch("/api/toggle_bot", { method: "POST" });
+        fetchStatus();
+      } catch (err) {
+        alert("Failed to toggle bot: " + err);
+      }
+    }
+
+    async function triggerKillSwitch() {
+      if (confirm("Are you sure? This will FLATTEN all open positions and HALT the system.")) {
+        try {
+          await fetch("/api/kill_switch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reason: "Emergency Button Clicked in Web UI" })
+          });
+          fetchStatus();
+        } catch (err) {
+          alert("Kill switch error: " + err);
+        }
+      }
+    }
+
+    async function unlockSystem() {
+      try {
+        await fetch("/api/unlock", { method: "POST" });
+        fetchStatus();
+      } catch (err) {
+        alert("Unlock error: " + err);
+      }
+    }
+
+    async function resetAccount() {
+      if (confirm("Reset account back to ₹1,00,000 clean slate?")) {
+        try {
+          await fetch("/api/reset_account", { method: "POST" });
+          fetchStatus();
+        } catch (err) {
+          alert("Reset error: " + err);
+        }
+      }
+    }
+
+    // Auto-poll status every 2 seconds
+    fetchStatus();
+    setInterval(fetchStatus, 2000);
+  </script>
+</body>
+</html>

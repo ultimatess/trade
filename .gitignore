@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Quant runtime state & secrets
+trading.lock
+.env
+*.log
+
+# OS
+.DS_Store
