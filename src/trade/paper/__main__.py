@@ -8,7 +8,8 @@ import logging
 from trade.core.config import config, log_config_fingerprint
 from trade.paper.trading_system import QuantTradingSystem
 
-def main():
+
+def main() -> None:
     log_config_fingerprint(logging.getLogger("Config"))
     system = QuantTradingSystem()
     print("=" * 70)
@@ -20,7 +21,7 @@ def main():
     test_tweets = [
         "$TATASTEEL massive volume spike on institutional buying",
         "$TATASTEEL breakout above 155 resistance with strong delivery",
-        "$TATASTEEL quarterly numbers beat estimates"
+        "$TATASTEEL quarterly numbers beat estimates",
     ]
 
     system.run_single_cycle(
@@ -31,8 +32,9 @@ def main():
         relative_volume=4.2,
         adv_inr=180_000_000.0,
         sample_tweets=test_tweets,
-        simulated_time_str="10:15"
+        simulated_time_str="10:15",
     )
+
 
 if __name__ == "__main__":
     main()

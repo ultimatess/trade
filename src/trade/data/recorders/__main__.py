@@ -14,14 +14,14 @@ import json
 import logging
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from trade.core.env import install_redaction, load_dotenv
 from trade.data.recorders import symbols
 from trade.data.recorders.social import (
     JsonlSink,
-    RecorderConfigError,
     Recorder,
+    RecorderConfigError,
     RedditSource,
     SourceError,
     load_author_salt,
@@ -37,8 +37,9 @@ def cmd_run(args: argparse.Namespace) -> int:
     try:
         source = RedditSource.from_env(cfg, load_author_salt())
     except RecorderConfigError as e:
-        print(f"REFUSING TO START: {e}. Copy .env.example to .env and fill in Reddit OAuth credentials.",
-              file=sys.stderr)
+        print(
+            f"REFUSING TO START: {e}. Copy .env.example to .env and fill in Reddit OAuth credentials.", file=sys.stderr
+        )
         return 2
     sink = JsonlSink(raw_social_root(), source.name)
     recorder = Recorder(source, sink, cfg.max_pages_per_poll)
@@ -48,8 +49,10 @@ def cmd_run(args: argparse.Namespace) -> int:
         while True:
             started = time.monotonic()
             results = recorder.run_once()
-            logger.info(f"poll: {sum(v for v in results.values() if v > 0)} new, "
-                        f"{sum(1 for v in results.values() if v < 0)} channel errors")
+            logger.info(
+                f"poll: {sum(v for v in results.values() if v > 0)} new, "
+                f"{sum(1 for v in results.values() if v < 0)} channel errors"
+            )
             if args.once:
                 return 0 if all(v >= 0 for v in results.values()) else 1
             wait = cfg.poll_interval_seconds
@@ -108,7 +111,7 @@ def main(argv: list[str] | None = None) -> int:
     run.set_defaults(fn=cmd_run)
     sub.add_parser("refresh-universe").set_defaults(fn=cmd_refresh_universe)
     tag = sub.add_parser("tag")
-    tag.add_argument("--date", default=datetime.now(timezone.utc).date().isoformat())
+    tag.add_argument("--date", default=datetime.now(UTC).date().isoformat())
     tag.set_defaults(fn=cmd_tag)
     sub.add_parser("status").set_defaults(fn=cmd_status)
     args = parser.parse_args(argv)

@@ -8,6 +8,7 @@ from dataclasses import dataclass
 @dataclass
 class TradeResult:
     """Final executed trade telemetry."""
+
     symbol: str
     entry_price: float
     exit_price: float

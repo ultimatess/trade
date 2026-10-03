@@ -8,6 +8,7 @@ from dataclasses import dataclass
 @dataclass
 class Position:
     """Live open exposure tracking."""
+
     symbol: str
     entry_price: float
     quantity: int

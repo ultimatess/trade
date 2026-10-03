@@ -4,9 +4,11 @@ Displays Live NAV, Open Positions, Brier Calibration, and Kill Switch Status.
 """
 
 from datetime import datetime
+
+from trade.brokers.paper import IndianPaperBroker
 from trade.core.config import config
 from trade.core.risk.engine import RiskEngine
-from trade.brokers.paper import IndianPaperBroker
+
 
 class TerminalDashboard:
     """Renders high-clarity status reports for the trading system."""
@@ -50,6 +52,7 @@ class TerminalDashboard:
             )
         output.append("=" * 72)
         return "\n".join(output)
+
 
 if __name__ == "__main__":
     broker = IndianPaperBroker()

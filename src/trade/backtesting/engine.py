@@ -6,27 +6,29 @@ There is no out-of-sample split, and the synthetic generator is circular
 (docs/CURRENT_STATE.md section 6). Replaced by the event-driven engine in Phase 3.
 """
 
+import logging
 import math
 import os
 import random
 import tempfile
-import logging
-from typing import Dict, List, Any, Tuple
+from typing import Any
+
+from trade.brokers.paper import IndianPaperBroker
 from trade.core.config import config
 from trade.core.market_state.models import MarketSnapshot
-from trade.core.signals.models import SocialSignal
 from trade.core.risk.engine import RiskEngine
-from trade.strategies.social_momentum.reflex import FastReflexScorer
+from trade.core.signals.models import SocialSignal
 from trade.core.strategy.calibration import CalibrationEngine
-from trade.brokers.paper import IndianPaperBroker
+from trade.strategies.social_momentum.reflex import FastReflexScorer
 
 logger = logging.getLogger("Backtester")
+
 
 class BacktestMetrics:
     """Computes comprehensive quantitative performance and statistical significance."""
 
     @staticmethod
-    def calculate(trades: List[Any], starting_capital: float = config.STARTING_CAPITAL) -> Dict[str, Any]:
+    def calculate(trades: list[Any], starting_capital: float = config.STARTING_CAPITAL) -> dict[str, Any]:
         if not trades:
             return {
                 "total_trades": 0,
@@ -35,7 +37,7 @@ class BacktestMetrics:
                 "sharpe_ratio": 0.0,
                 "max_drawdown_pct": 0.0,
                 "t_statistic": 0.0,
-                "passed_all_gates": False
+                "passed_all_gates": False,
             }
 
         pnls = [t.net_pnl for t in trades]
@@ -97,7 +99,7 @@ class BacktestMetrics:
             "gate_max_dd_passed": gate_max_dd,
             "gate_hit_rate_passed": gate_hit_rate,
             "gate_t_stat_passed": gate_t_stat,
-            "passed_all_gates": passed_all_gates
+            "passed_all_gates": passed_all_gates,
         }
 
 
@@ -107,7 +109,7 @@ class BacktestRunner:
     def __init__(self, seed: int = 42):
         self.rng = random.Random(seed)
 
-    def run_multi_regime_simulation(self, total_candles: int = 500) -> Dict[str, Any]:
+    def run_multi_regime_simulation(self, total_candles: int = 500) -> dict[str, Any]:
         """
         Executes backtest over synthetic multi-regime market series
         (Regime 1: Strong Trend, Regime 2: Choppy Churn, Regime 3: Bot Pump & Dump).
@@ -116,7 +118,7 @@ class BacktestRunner:
         with tempfile.TemporaryDirectory(prefix="backtest_state_") as run_state:
             return self._run(RiskEngine(lockfile_path=os.path.join(run_state, "trading.lock")), total_candles)
 
-    def _run(self, risk_engine: RiskEngine, total_candles: int) -> Dict[str, Any]:
+    def _run(self, risk_engine: RiskEngine, total_candles: int) -> dict[str, Any]:
 
         calibration_engine = CalibrationEngine()
         reflex_scorer = FastReflexScorer(calibration_engine)
@@ -170,7 +172,7 @@ class BacktestRunner:
                 relative_volume=rvol,
                 upper_circuit=current_price * 1.10,
                 lower_circuit=current_price * 0.90,
-                adv_inr=150_000_000.0  # ₹15 Crore ADV (Liquid)
+                adv_inr=150_000_000.0,  # ₹15 Crore ADV (Liquid)
             )
 
             signal = SocialSignal(
@@ -179,7 +181,7 @@ class BacktestRunner:
                 mentions_count=int(zscore * 30),
                 velocity_zscore=zscore,
                 unique_verified_ratio=0.85 if spam_score < 0.3 else 0.20,
-                spam_cluster_score=spam_score
+                spam_cluster_score=spam_score,
             )
 
             # Update existing positions
@@ -192,7 +194,7 @@ class BacktestRunner:
                 current_equity=broker.total_equity,
                 current_positions_count=len([p for p in broker.positions.values() if p.is_active]),
                 daily_loss_incurred=broker.daily_realized_loss,
-                time_str="11:30"
+                time_str="11:30",
             )
 
             if passed_risk:
@@ -202,14 +204,12 @@ class BacktestRunner:
                         symbol=symbol,
                         capital_fraction=decision.recommended_fraction,
                         current_price=current_price,
-                        current_time=simulated_time
+                        current_time=simulated_time,
                     )
 
         # Close any lingering positions at end of backtest
         broker.flatten_all(
-            current_prices={s: current_price for s in symbols},
-            current_time=simulated_time,
-            reason="BACKTEST_EOD"
+            current_prices={s: current_price for s in symbols}, current_time=simulated_time, reason="BACKTEST_EOD"
         )
 
         metrics = BacktestMetrics.calculate(broker.trade_history, starting_capital=config.STARTING_CAPITAL)

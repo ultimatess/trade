@@ -44,8 +44,14 @@ def request(server, method, path, body=None, token=None, host=None):
     return resp, payload
 
 
-MUTATING = ["/api/execute_cycle", "/api/run_backtest", "/api/kill_switch", "/api/unlock",
-            "/api/reset_account", "/api/toggle_bot"]
+MUTATING = [
+    "/api/execute_cycle",
+    "/api/run_backtest",
+    "/api/kill_switch",
+    "/api/unlock",
+    "/api/reset_account",
+    "/api/toggle_bot",
+]
 
 
 @pytest.mark.parametrize("path", MUTATING)
@@ -71,8 +77,9 @@ def test_unlock_requires_typed_confirmation(server):
 @pytest.mark.parametrize("method,path", [("GET", "/api/status"), ("GET", "/"), ("POST", "/api/toggle_bot")])
 def test_foreign_host_header_rejected(server, method, path):
     """Blocks DNS-rebinding: a page on evil.example resolving to 127.0.0.1."""
-    resp, _ = request(server, method, path, {} if method == "POST" else None, token=server["token"],
-                      host="evil.example:8080")
+    resp, _ = request(
+        server, method, path, {} if method == "POST" else None, token=server["token"], host="evil.example:8080"
+    )
     assert resp.status == 403
 
 
@@ -104,13 +111,16 @@ def test_oversized_body_rejected(server):
     conn.close()
 
 
-@pytest.mark.parametrize("bad", [
-    {"symbol": "<img src=x onerror=alert(1)>"},
-    {"symbol": "INFY", "price": "nan"},
-    {"symbol": "INFY", "price": -5},
-    {"symbol": "INFY", "time_str": "25:99"},
-    {"symbol": "INFY", "tweets": "not-a-list"},
-])
+@pytest.mark.parametrize(
+    "bad",
+    [
+        {"symbol": "<img src=x onerror=alert(1)>"},
+        {"symbol": "INFY", "price": "nan"},
+        {"symbol": "INFY", "price": -5},
+        {"symbol": "INFY", "time_str": "25:99"},
+        {"symbol": "INFY", "tweets": "not-a-list"},
+    ],
+)
 def test_execute_cycle_rejects_untrusted_input(server, bad):
     assert request(server, "POST", "/api/execute_cycle", bad, token=server["token"])[0].status == 400
 
@@ -126,8 +136,17 @@ def test_dashboard_served_with_token_and_local_assets(server):
 def test_dashboard_escapes_all_server_strings():
     html = INDEX.read_text()
     assert "function esc(" in html
-    for field in ["p.symbol", "t.symbol", "t.exit_time", "t.exit_reason", "s.symbol", "s.time",
-                  "l.timestamp", "l.level", "l.message"]:
+    for field in [
+        "p.symbol",
+        "t.symbol",
+        "t.exit_time",
+        "t.exit_reason",
+        "s.symbol",
+        "s.time",
+        "l.timestamp",
+        "l.level",
+        "l.message",
+    ]:
         assert "${" + field + "}" not in html, f"unescaped {field}"
     # every POST goes through the authenticated helper
     assert not re.search(r'fetch\("/api/(?!status)', html)

@@ -3,16 +3,14 @@ Probability Calibration Engine.
 Tracks Brier score and applies monotonic venue recalibration to raw strategy forecasts.
 """
 
-from typing import List, Dict, Tuple
-
 
 class CalibrationEngine:
     """Tracks Brier score and applies monotonic reliability calibration."""
 
-    def __init__(self):
-        self.history: List[Tuple[float, int]] = []  # (forecast_prob, outcome 0 or 1)
+    def __init__(self) -> None:
+        self.history: list[tuple[float, int]] = []  # (forecast_prob, outcome 0 or 1)
         # Empirical piecewise calibration table: {forecast_bucket: actual_win_rate}
-        self.calibration_map: Dict[float, float] = {
+        self.calibration_map: dict[float, float] = {
             0.50: 0.45,
             0.60: 0.54,
             0.65: 0.62,
@@ -43,7 +41,7 @@ class CalibrationEngine:
             return self.calibration_map[buckets[-1]]
 
         for i in range(len(buckets) - 1):
-            low, high = buckets[i], buckets[i+1]
+            low, high = buckets[i], buckets[i + 1]
             if low <= raw_prob <= high:
                 weight = (raw_prob - low) / (high - low)
                 return self.calibration_map[low] + weight * (self.calibration_map[high] - self.calibration_map[low])

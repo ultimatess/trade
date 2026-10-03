@@ -8,6 +8,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class MarketSnapshot:
     """Compact numeric snapshot consumed by Fast Reflex layer. Strict prior timestamp."""
+
     symbol: str
     timestamp: float
     last_price: float

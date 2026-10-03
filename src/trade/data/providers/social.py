@@ -5,23 +5,24 @@ Text is reduced to numeric features and is never passed to a model.
 Bot filtering is a duplicate-text heuristic only.
 """
 
-import re
-import time
-import urllib.request
 import json
 import logging
-from typing import Dict, List, Optional
+import time
+import urllib.request
+from typing import Any
+
 from trade.core.signals.models import SocialSignal
 
 logger = logging.getLogger("SocialScanner")
 
+
 class SocialMomentumScanner:
     """Free ingestion pipeline for retail social momentum."""
 
-    def __init__(self):
-        self.mention_history: Dict[str, List[float]] = {}  # {symbol: [timestamps]}
+    def __init__(self) -> None:
+        self.mention_history: dict[str, list[float]] = {}  # {symbol: [timestamps]}
 
-    def record_mention(self, symbol: str, timestamp: Optional[float] = None) -> None:
+    def record_mention(self, symbol: str, timestamp: float | None = None) -> None:
         """Records a timestamped mention for rolling velocity calculations."""
         ts = timestamp or time.time()
         sym = symbol.upper().replace("$", "")
@@ -47,35 +48,28 @@ class SocialMomentumScanner:
         recent_count = len(recent_mentions)
 
         # Standard Poisson / Gaussian approximation for z-score
-        std_dev = max(1.0, hourly_baseline_mean ** 0.5)
+        std_dev = max(1.0, float(hourly_baseline_mean**0.5))
         zscore = (recent_count - hourly_baseline_mean) / std_dev
         return round(zscore, 2)
 
-    def fetch_stocktwits_trending(self) -> List[Dict]:
+    def fetch_stocktwits_trending(self) -> list[dict[str, Any]]:
         """
         Polls StockTwits public trending endpoint (no API key). Currently blocked by Cloudflare (HTTP 403) and unused.
         Returns list of trending symbol dictionaries.
         """
         url = "https://api.stocktwits.com/api/2/streams/trending.json"
-        req = urllib.request.Request(
-            url,
-            headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"}
-        )
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"})
         try:
-            with urllib.request.urlopen(req, timeout=5) as response:
+            with urllib.request.urlopen(req, timeout=5) as response:  # noqa: S310 - fixed https URL
                 if response.status == 200:
-                    data = json.loads(response.read().decode('utf-8'))
-                    return data.get("symbols", [])
+                    data = json.loads(response.read().decode("utf-8"))
+                    symbols: list[dict[str, Any]] = data.get("symbols", [])
+                    return symbols
         except Exception as e:
             logger.warning(f"StockTwits public feed poll failed: {e}")
         return []
 
-    def sanitize_and_extract_signal(
-        self,
-        symbol: str,
-        recent_tweets: List[str],
-        current_time: float
-    ) -> SocialSignal:
+    def sanitize_and_extract_signal(self, symbol: str, recent_tweets: list[str], current_time: float) -> SocialSignal:
         """
         Extracts purely numeric features from social stream.
         Treats text strictly as passive data to prevent prompt injection.
@@ -104,5 +98,5 @@ class SocialMomentumScanner:
             mentions_count=mentions_count,
             velocity_zscore=velocity_z,
             unique_verified_ratio=unique_verified_ratio,
-            spam_cluster_score=spam_score
+            spam_cluster_score=spam_score,
         )

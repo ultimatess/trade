@@ -6,19 +6,20 @@ Calculates capped quarter-Kelly sizing and monitors Brier calibration scores.
 """
 
 import logging
-from typing import List, Optional
+
 from trade.core.config import config
 from trade.core.market_state.models import MarketSnapshot
 from trade.core.signals.models import SocialSignal
-from trade.core.strategy.models import ReflexDecision
 from trade.core.strategy.calibration import CalibrationEngine
+from trade.core.strategy.models import ReflexDecision
 
 logger = logging.getLogger("ReflexEngine")
+
 
 class FastReflexScorer:
     """Hand-weighted decision scorer (Strategy #001 v1 legacy logic)."""
 
-    def __init__(self, calibration_engine: Optional[CalibrationEngine] = None):
+    def __init__(self, calibration_engine: CalibrationEngine | None = None):
         self.calibration = calibration_engine or CalibrationEngine()
 
     def evaluate(self, snapshot: MarketSnapshot, signal: SocialSignal) -> ReflexDecision:
@@ -28,7 +29,9 @@ class FastReflexScorer:
         # Question 1: Is social surge organic rather than bot spoofing?
         # Higher unique verified ratio and lower spam score -> high organic probability
         zscore_factor = min(1.0, max(0.0, (signal.velocity_zscore - 2.0) / 4.0))
-        organic_score = (signal.unique_verified_ratio * 0.5) + (zscore_factor * 0.3) + ((1.0 - signal.spam_cluster_score) * 0.2)
+        organic_score = (
+            (signal.unique_verified_ratio * 0.5) + (zscore_factor * 0.3) + ((1.0 - signal.spam_cluster_score) * 0.2)
+        )
         p_organic = min(0.99, max(0.01, organic_score))
 
         # Question 2: Directional momentum probability P(Delta P >= +1.0% before -0.7%)
@@ -53,7 +56,7 @@ class FastReflexScorer:
         q = 1.0 - p
         kelly_fraction = (b * p - q) / b if b > 0 else 0.0
 
-        veto_reasons: List[str] = []
+        veto_reasons: list[str] = []
         if p_organic < 0.70:
             veto_reasons.append(f"REFLEX_ORGANIC_PROB_LOW: {p_organic:.2f} < 0.70")
         if p_win_calibrated < config.MIN_CALIBRATED_PROBABILITY:
@@ -79,5 +82,5 @@ class FastReflexScorer:
             setup_quality=round(setup_quality, 1),
             recommended_fraction=round(recommended_fraction, 4),
             passed_all_gates=passed_gates,
-            veto_reasons=veto_reasons
+            veto_reasons=veto_reasons,
         )

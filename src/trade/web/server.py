@@ -3,91 +3,92 @@ Local Web Server & REST API for the Indian Quant Trading Bot.
 Standard-library ThreadingHTTPServer, loopback-only, operator-token protected.
 """
 
-import os
-import re
 import hmac
 import json
-import math
-import time
 import logging
+import math
+import os
+import re
 import secrets
 import threading
-from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse
+import time
 from datetime import datetime
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from typing import Any
+from urllib.parse import urlparse
 
+from trade.backtesting.engine import BacktestRunner
+from trade.brokers.paper import IndianPaperBroker
 from trade.core.config import config, log_config_fingerprint, state_dir
+from trade.core.market_state.models import MarketSnapshot
 from trade.core.risk.engine import RiskEngine
-from trade.strategies.social_momentum.reflex import FastReflexScorer
 from trade.core.strategy.calibration import CalibrationEngine
 from trade.data.providers.social import SocialMomentumScanner
-from trade.brokers.paper import IndianPaperBroker
-from trade.backtesting.engine import BacktestRunner, BacktestMetrics
-from trade.core.market_state.models import MarketSnapshot
-from trade.core.signals.models import SocialSignal
+from trade.strategies.social_momentum.reflex import FastReflexScorer
 
 logger = logging.getLogger("QuantWebServer")
+
 
 class SystemStateHolder:
     """Thread-safe state manager for the quant trading system."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.lock = threading.RLock()
         self.risk_engine = RiskEngine()
         self.calibration_engine = CalibrationEngine()
         self.reflex_scorer = FastReflexScorer(self.calibration_engine)
         self.social_scanner = SocialMomentumScanner()
         self.broker = IndianPaperBroker(initial_capital=config.STARTING_CAPITAL)
-        
-        self.bot_running = False
-        self.bot_thread = None
-        self._bot_generation = 0
-        self.recent_logs = []
-        self.recent_signals = []
-        self.latest_backtest_results = None
 
-    def log(self, message: str, level: str = "INFO"):
-        entry = {
-            "timestamp": datetime.now().strftime("%H:%M:%S"),
-            "level": level,
-            "message": message
-        }
+        self.bot_running = False
+        self.bot_thread: threading.Thread | None = None
+        self._bot_generation = 0
+        self.recent_logs: list[dict[str, str]] = []
+        self.recent_signals: list[dict[str, Any]] = []
+        self.latest_backtest_results: dict[str, Any] | None = None
+
+    def log(self, message: str, level: str = "INFO") -> None:
+        entry = {"timestamp": datetime.now().strftime("%H:%M:%S"), "level": level, "message": message}
         with self.lock:
             self.recent_logs.append(entry)
             if len(self.recent_logs) > 100:
                 self.recent_logs.pop(0)
 
-    def get_status_payload(self):
+    def get_status_payload(self) -> dict[str, Any]:
         with self.lock:
             kill_active = self.risk_engine.is_kill_switch_active()
             positions_data = []
             for p in self.broker.positions.values():
                 if p.is_active:
-                    positions_data.append({
-                        "symbol": p.symbol,
-                        "entry_price": p.entry_price,
-                        "quantity": p.quantity,
-                        "entry_time": datetime.fromtimestamp(p.entry_time).strftime("%H:%M:%S"),
-                        "target_price": p.target_price,
-                        "stop_loss_price": p.stop_loss_price,
-                        "current_price": p.current_price,
-                        "gross_unrealized_pnl": round(p.gross_unrealized_pnl, 2),
-                        "pnl_pct": round(p.pnl_pct * 100, 2)
-                    })
+                    positions_data.append(
+                        {
+                            "symbol": p.symbol,
+                            "entry_price": p.entry_price,
+                            "quantity": p.quantity,
+                            "entry_time": datetime.fromtimestamp(p.entry_time).strftime("%H:%M:%S"),
+                            "target_price": p.target_price,
+                            "stop_loss_price": p.stop_loss_price,
+                            "current_price": p.current_price,
+                            "gross_unrealized_pnl": round(p.gross_unrealized_pnl, 2),
+                            "pnl_pct": round(p.pnl_pct * 100, 2),
+                        }
+                    )
 
             trades_data = []
             for t in self.broker.trade_history[-20:]:
-                trades_data.append({
-                    "symbol": t.symbol,
-                    "entry_price": t.entry_price,
-                    "exit_price": t.exit_price,
-                    "quantity": t.quantity,
-                    "exit_reason": t.exit_reason,
-                    "gross_pnl": round(t.gross_pnl, 2),
-                    "total_charges": round(t.total_statutory_charges, 2),
-                    "net_pnl": round(t.net_pnl, 2),
-                    "exit_time": datetime.fromtimestamp(t.exit_time).strftime("%H:%M:%S")
-                })
+                trades_data.append(
+                    {
+                        "symbol": t.symbol,
+                        "entry_price": t.entry_price,
+                        "exit_price": t.exit_price,
+                        "quantity": t.quantity,
+                        "exit_reason": t.exit_reason,
+                        "gross_pnl": round(t.gross_pnl, 2),
+                        "total_charges": round(t.total_statutory_charges, 2),
+                        "net_pnl": round(t.net_pnl, 2),
+                        "exit_time": datetime.fromtimestamp(t.exit_time).strftime("%H:%M:%S"),
+                    }
+                )
 
             return {
                 "status": "HALTED (KILL SWITCH ACTIVE)" if kill_active else "ACTIVE & ARMED",
@@ -105,10 +106,12 @@ class SystemStateHolder:
                 "recent_logs": list(reversed(self.recent_logs[-30:])),
                 "recent_signals": self.recent_signals[-10:],
                 "latest_backtest": self.latest_backtest_results,
-                "server_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S IST")
+                "server_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S IST"),
             }
 
-    def execute_cycle(self, symbol: str, price: float, rvol: float, tweets: list, time_str: str = "11:00"):
+    def execute_cycle(
+        self, symbol: str, price: float, rvol: float, tweets: list[str], time_str: str = "11:00"
+    ) -> dict[str, Any]:
         with self.lock:
             ts = time.time()
             self.log(f"Evaluating {symbol} @ ₹{price:.2f} ({time_str} IST)...")
@@ -137,7 +140,7 @@ class SystemStateHolder:
                 relative_volume=rvol,
                 upper_circuit=round(price * 1.10, 2),
                 lower_circuit=round(price * 0.90, 2),
-                adv_inr=180_000_000.0
+                adv_inr=180_000_000.0,
             )
 
             # 4. Deterministic Pre-trade Gates
@@ -148,7 +151,7 @@ class SystemStateHolder:
                 current_equity=self.broker.total_equity,
                 current_positions_count=active_count,
                 daily_loss_incurred=self.broker.daily_realized_loss,
-                time_str=time_str
+                time_str=time_str,
             )
 
             if not passed_risk:
@@ -157,15 +160,17 @@ class SystemStateHolder:
 
             # 5. Fast Reflex Scoring
             decision = self.reflex_scorer.evaluate(snapshot, signal)
-            self.recent_signals.append({
-                "symbol": symbol,
-                "time": datetime.now().strftime("%H:%M:%S"),
-                "p_organic": decision.p_organic,
-                "p_win": decision.p_win_calibrated,
-                "quality": decision.setup_quality,
-                "kelly_pct": round(decision.recommended_fraction * 100, 2),
-                "passed": decision.passed_all_gates
-            })
+            self.recent_signals.append(
+                {
+                    "symbol": symbol,
+                    "time": datetime.now().strftime("%H:%M:%S"),
+                    "p_organic": decision.p_organic,
+                    "p_win": decision.p_win_calibrated,
+                    "quality": decision.setup_quality,
+                    "kelly_pct": round(decision.recommended_fraction * 100, 2),
+                    "passed": decision.passed_all_gates,
+                }
+            )
 
             if not decision.passed_all_gates:
                 self.log(f"Reflex Veto on {symbol}: {', '.join(decision.veto_reasons)}", level="WARNING")
@@ -173,10 +178,7 @@ class SystemStateHolder:
 
             # 6. Execute Order
             order = self.broker.submit_bracket_entry(
-                symbol=symbol,
-                capital_fraction=decision.recommended_fraction,
-                current_price=price,
-                current_time=ts
+                symbol=symbol, capital_fraction=decision.recommended_fraction, current_price=price, current_time=ts
             )
 
             if order:
@@ -186,7 +188,7 @@ class SystemStateHolder:
                 self.log(f"Broker rejected order for {symbol}", level="WARNING")
                 return {"success": False, "step": "BROKER_REJECT"}
 
-    def run_backtest(self, total_candles: int = 500):
+    def run_backtest(self, total_candles: int = 500) -> dict[str, Any]:
         self.log("Starting legacy synthetic simulation (not evidence of edge)...")
         runner = BacktestRunner(seed=int(time.time()))
         metrics = runner.run_multi_regime_simulation(total_candles=total_candles)
@@ -199,7 +201,7 @@ class SystemStateHolder:
         )
         return metrics
 
-    def trigger_kill(self, reason: str = "Operator manual kill switch engaged"):
+    def trigger_kill(self, reason: str = "Operator manual kill switch engaged") -> None:
         with self.lock:
             self.risk_engine.trigger_kill_switch(reason)
             current_prices = {s: p.current_price for s, p in self.broker.positions.items()}
@@ -215,7 +217,7 @@ class SystemStateHolder:
             self.log("Kill switch cleared by operator. System re-armed.")
             return True
 
-    def reset_account(self):
+    def reset_account(self) -> None:
         with self.lock:
             self.broker = IndianPaperBroker(initial_capital=config.STARTING_CAPITAL)
             self.calibration_engine = CalibrationEngine()
@@ -223,7 +225,7 @@ class SystemStateHolder:
             self.recent_signals.clear()
             self.log("Account reset to starting equity ₹1,00,000. Clean slate initialized.")
 
-    def toggle_bot(self):
+    def toggle_bot(self) -> bool:
         with self.lock:
             if self.risk_engine.is_kill_switch_active():
                 self.log("Cannot start bot while kill switch is active. Unlock system first.", level="ERROR")
@@ -242,7 +244,7 @@ class SystemStateHolder:
         self.log("Autonomous trading loop STARTED." if is_active else "Autonomous trading loop STOPPED.")
         return is_active
 
-    def _background_worker(self, generation: int):
+    def _background_worker(self, generation: int) -> None:
         """Simulates autonomous live market ticks and scans every 4 seconds."""
         symbols = ["TATASTEEL", "RELIANCE", "ZOMATO", "HDFCBANK", "INFY"]
         idx = 0
@@ -255,6 +257,7 @@ class SystemStateHolder:
                 base_p = prices[sym]
                 # Price drift simulation
                 import random
+
                 drift = random.uniform(-0.004, 0.005)
                 prices[sym] = round(base_p * (1.0 + drift), 2)
                 curr_p = prices[sym]
@@ -264,16 +267,10 @@ class SystemStateHolder:
                 sample_tweets = [
                     f"${sym} strong buyer interest on delivery volume",
                     f"${sym} break of day's resistance on high tick velocity",
-                    f"${sym} positive institutional brokerage report"
+                    f"${sym} positive institutional brokerage report",
                 ]
 
-                self.execute_cycle(
-                    symbol=sym,
-                    price=curr_p,
-                    rvol=rvol,
-                    tweets=sample_tweets,
-                    time_str="11:30"
-                )
+                self.execute_cycle(symbol=sym, price=curr_p, rvol=rvol, tweets=sample_tweets, time_str="11:30")
             except Exception as e:
                 self.log(f"Background worker exception: {e}", level="ERROR")
 
@@ -310,7 +307,7 @@ def load_or_create_operator_token() -> str:
         return token
 
 
-def parse_cycle_payload(payload: dict) -> tuple:
+def parse_cycle_payload(payload: dict[str, Any]) -> tuple[str, float, float, list[str], str]:
     """Validate /api/execute_cycle input. Market inputs are untrusted data."""
     symbol = payload.get("symbol", "TATASTEEL")
     if not isinstance(symbol, str) or not SYMBOL_RE.match(symbol):
@@ -323,7 +320,11 @@ def parse_cycle_payload(payload: dict) -> tuple:
     if not (math.isfinite(price) and price > 0 and math.isfinite(rvol) and rvol >= 0):
         raise BadRequest("price must be > 0 and rvol >= 0")
     tweets = payload.get("tweets", [f"${symbol} surge on volume breakout"])
-    if not isinstance(tweets, list) or len(tweets) > 500 or not all(isinstance(t, str) and len(t) <= 2000 for t in tweets):
+    if (
+        not isinstance(tweets, list)
+        or len(tweets) > 500
+        or not all(isinstance(t, str) and len(t) <= 2000 for t in tweets)
+    ):
         raise BadRequest("tweets must be a list of at most 500 strings of at most 2000 chars")
     time_str = payload.get("time_str", "11:00")
     if not isinstance(time_str, str) or not TIME_RE.match(time_str):
@@ -343,9 +344,9 @@ class QuantRequestHandler(BaseHTTPRequestHandler):
     server_version = "TradeOS"
     sys_version = ""
     operator_token = ""
-    allowed_hosts: frozenset = frozenset()
+    allowed_hosts: frozenset[str] = frozenset()
 
-    def _send(self, body: bytes, content_type: str, status_code: int = 200):
+    def _send(self, body: bytes, content_type: str, status_code: int = 200) -> None:
         self.send_response(status_code)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
@@ -355,19 +356,19 @@ class QuantRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _send_json(self, data, status_code=200):
+    def _send_json(self, data: Any, status_code: int = 200) -> None:
         self._send(json.dumps(data).encode("utf-8"), "application/json", status_code)
 
-    def _send_html(self, html_content, status_code=200):
+    def _send_html(self, html_content: str, status_code: int = 200) -> None:
         self._send(html_content.encode("utf-8"), "text/html; charset=utf-8", status_code)
 
     def _host_ok(self) -> bool:
         return self.headers.get("Host", "") in self.allowed_hosts
 
-    def do_OPTIONS(self):
+    def do_OPTIONS(self) -> None:
         self._send_json({"error": "method not allowed"}, 405)
 
-    def do_GET(self):
+    def do_GET(self) -> None:
         if not self._host_ok():
             return self._send_json({"error": "forbidden host"}, 403)
         parsed = urlparse(self.path)
@@ -375,7 +376,7 @@ class QuantRequestHandler(BaseHTTPRequestHandler):
             self._send_json(state_holder.get_status_payload())
         elif parsed.path == "/" or parsed.path == "/index.html":
             html_path = os.path.join(STATIC_DIR, "index.html")
-            with open(html_path, "r", encoding="utf-8") as f:
+            with open(html_path, encoding="utf-8") as f:
                 html = f.read()
             # Same-origin page receives the token; other origins cannot read this response.
             self._send_html(html.replace("__OPERATOR_TOKEN__", self.operator_token))
@@ -386,7 +387,7 @@ class QuantRequestHandler(BaseHTTPRequestHandler):
         else:
             self._send_json({"error": "not found"}, 404)
 
-    def do_POST(self):
+    def do_POST(self) -> None:
         if not self._host_ok():
             return self._send_json({"error": "forbidden host"}, 403)
         if not hmac.compare_digest(self.headers.get("X-Operator-Token", ""), self.operator_token):
@@ -458,7 +459,7 @@ def make_server(port: int = 8080, host: str = "127.0.0.1") -> ThreadingHTTPServe
     return httpd
 
 
-def run_server(port: int = 8080):
+def run_server(port: int = 8080) -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
     log_config_fingerprint(logger)
     httpd = make_server(port)

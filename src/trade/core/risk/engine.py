@@ -4,21 +4,22 @@ Has veto authority over model recommendations.
 Enforces pre-trade gates and the kill switch. Flattening is done by the caller.
 """
 
-import os
 import logging
-from datetime import datetime, timezone
+import os
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Tuple, List, Optional
+
 from trade.core.config import config, state_dir
 from trade.core.market_state.models import MarketSnapshot
 from trade.core.signals.models import SocialSignal
 
 logger = logging.getLogger("RiskEngine")
 
+
 class RiskEngine:
     """Deterministic risk guardian. The kill switch fails closed."""
 
-    def __init__(self, lockfile_path: Optional[str] = None):
+    def __init__(self, lockfile_path: str | None = None):
         # Absolute path: the kill switch must not depend on the working directory.
         path = Path(lockfile_path) if lockfile_path else state_dir() / config.LOCKFILE_PATH
         self.lockfile_path = str(path.resolve())
@@ -45,7 +46,7 @@ class RiskEngine:
         try:
             Path(self.lockfile_path).parent.mkdir(parents=True, exist_ok=True)
             with open(self.lockfile_path, "w") as f:
-                f.write(f"REASON: {reason}\nTRIGGERED_AT: {datetime.now(timezone.utc).isoformat()}\n")
+                f.write(f"REASON: {reason}\nTRIGGERED_AT: {datetime.now(UTC).isoformat()}\n")
         except Exception as e:
             logger.critical(f"Failed to persist kill switch lockfile ({e}); remaining HALTED in memory")
 
@@ -71,13 +72,13 @@ class RiskEngine:
         current_equity: float,
         current_positions_count: int,
         daily_loss_incurred: float,
-        time_str: str  # Format "HH:MM"
-    ) -> Tuple[bool, List[str]]:
+        time_str: str,  # Format "HH:MM"
+    ) -> tuple[bool, list[str]]:
         """
         Executes strict deterministic gate validation before an order can touch the broker.
         Returns: (passed: bool, veto_reasons: List[str])
         """
-        veto_reasons: List[str] = []
+        veto_reasons: list[str] = []
 
         # Gate 1: Kill switch check
         if self.is_kill_switch_active():
@@ -110,11 +111,13 @@ class RiskEngine:
 
         # Gate 7: Liquidity (Minimum ADV ₹10 Crore)
         if snapshot.adv_inr < config.MIN_ADV_INR:
-            veto_reasons.append(f"INSUFFICIENT_ADV: ₹{snapshot.adv_inr/1e7:.2f}Cr < ₹10Cr")
+            veto_reasons.append(f"INSUFFICIENT_ADV: ₹{snapshot.adv_inr / 1e7:.2f}Cr < ₹10Cr")
 
         # Gate 8: Order Book Imbalance (OBI >= +0.35)
         if snapshot.order_book_imbalance < config.MIN_ORDER_BOOK_IMBALANCE:
-            veto_reasons.append(f"INSUFFICIENT_BUY_DEPTH_OBI: {snapshot.order_book_imbalance:.2f} < {config.MIN_ORDER_BOOK_IMBALANCE}")
+            veto_reasons.append(
+                f"INSUFFICIENT_BUY_DEPTH_OBI: {snapshot.order_book_imbalance:.2f} < {config.MIN_ORDER_BOOK_IMBALANCE}"
+            )
 
         # Gate 9: Relative Volume Breakout
         if snapshot.relative_volume < config.MIN_RELATIVE_VOLUME:

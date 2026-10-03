@@ -5,25 +5,26 @@ tick, and applies statutory charges. No order book, queue, latency, partial
 fills or gaps. Known defect D-001: cash is not debited on entry.
 """
 
-import uuid
 import logging
-from typing import Dict, List, Optional
+import uuid
+
 from trade.core.config import config
-from trade.core.execution.models import Order
-from trade.core.portfolio.models import Position
-from trade.core.ledger.models import TradeResult
 from trade.core.execution.charges import IndianTaxCalculator
+from trade.core.execution.models import Order
+from trade.core.ledger.models import TradeResult
+from trade.core.portfolio.models import Position
 
 logger = logging.getLogger("PaperBroker")
+
 
 class IndianPaperBroker:
     """Deterministic paper execution environment for Indian Equities."""
 
     def __init__(self, initial_capital: float = config.STARTING_CAPITAL):
         self.cash: float = initial_capital
-        self.positions: Dict[str, Position] = {}
-        self.open_orders: Dict[str, Order] = {}
-        self.trade_history: List[TradeResult] = []
+        self.positions: dict[str, Position] = {}
+        self.open_orders: dict[str, Order] = {}
+        self.trade_history: list[TradeResult] = []
         self.daily_realized_loss: float = 0.0
         self.daily_realized_pnl: float = 0.0
 
@@ -34,12 +35,8 @@ class IndianPaperBroker:
         return self.cash + unrealized
 
     def submit_bracket_entry(
-        self,
-        symbol: str,
-        capital_fraction: float,
-        current_price: float,
-        current_time: float
-    ) -> Optional[Order]:
+        self, symbol: str, capital_fraction: float, current_price: float, current_time: float
+    ) -> Order | None:
         """
         Fills an entry immediately and registers take-profit / stop-loss levels for it.
         """
@@ -71,7 +68,7 @@ class IndianPaperBroker:
             order_type="LIMIT",
             price=fill_price,
             created_at=current_time,
-            status="FILLED"
+            status="FILLED",
         )
 
         target_price = round(fill_price * (1.0 + config.TARGET_PROFIT_PCT), 2)
@@ -85,7 +82,7 @@ class IndianPaperBroker:
             target_price=target_price,
             stop_loss_price=stop_price,
             current_price=fill_price,
-            is_active=True
+            is_active=True,
         )
 
         logger.info(
@@ -94,12 +91,7 @@ class IndianPaperBroker:
         )
         return order
 
-    def update_price_tick(
-        self,
-        symbol: str,
-        tick_price: float,
-        tick_time: float
-    ) -> Optional[TradeResult]:
+    def update_price_tick(self, symbol: str, tick_price: float, tick_time: float) -> TradeResult | None:
         """
         Evaluates active OCO brackets and timeouts on each price update.
         """
@@ -133,16 +125,10 @@ class IndianPaperBroker:
 
         return None
 
-    def _close_position(
-        self,
-        pos: Position,
-        exit_price: float,
-        exit_time: float,
-        reason: str
-    ) -> TradeResult:
+    def _close_position(self, pos: Position, exit_price: float, exit_time: float, reason: str) -> TradeResult:
         """Executes position exit and applies Indian statutory charges."""
         charges = IndianTaxCalculator.calculate_charges(pos.entry_price, exit_price, pos.quantity)
-        
+
         pos.is_active = False
         net_pnl = charges["net_pnl"]
         self.cash += (pos.entry_price * pos.quantity) + net_pnl
@@ -161,7 +147,7 @@ class IndianPaperBroker:
             gross_pnl=charges["gross_pnl"],
             total_statutory_charges=charges["total_charges"],
             net_pnl=net_pnl,
-            exit_reason=reason
+            exit_reason=reason,
         )
         self.trade_history.append(trade)
 
@@ -171,7 +157,9 @@ class IndianPaperBroker:
         )
         return trade
 
-    def flatten_all(self, current_prices: Dict[str, float], current_time: float, reason: str = "KILL_SWITCH") -> List[TradeResult]:
+    def flatten_all(
+        self, current_prices: dict[str, float], current_time: float, reason: str = "KILL_SWITCH"
+    ) -> list[TradeResult]:
         """Emergency or EOD flattening of all open exposure."""
         closed_trades = []
         for symbol, pos in list(self.positions.items()):

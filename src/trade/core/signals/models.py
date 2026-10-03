@@ -8,6 +8,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class SocialSignal:
     """Sanitized social velocity signal. Contains NO raw prompt text."""
+
     symbol: str
     timestamp: float
     mentions_count: int

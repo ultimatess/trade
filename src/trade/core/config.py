@@ -25,7 +25,7 @@ from typing import Any, TypeVar
 
 import yaml
 
-_PACKAGE_ROOT = Path(__file__).resolve().parents[1]          # src/trade
+_PACKAGE_ROOT = Path(__file__).resolve().parents[1]  # src/trade
 _REPO_ROOT = _PACKAGE_ROOT.parents[1]
 
 
@@ -143,7 +143,9 @@ def load_cost_model(model_id: str = "nse_intraday") -> tuple[CostModelConfig, Lo
 
 
 def load_social_momentum_v1() -> tuple[SocialMomentumV1Params, LoadedFile]:
-    return load_yaml_dataclass(_PACKAGE_ROOT / "strategies" / "social_momentum" / "v1" / "params.yaml", SocialMomentumV1Params)
+    return load_yaml_dataclass(
+        _PACKAGE_ROOT / "strategies" / "social_momentum" / "v1" / "params.yaml", SocialMomentumV1Params
+    )
 
 
 def load_runtime() -> tuple[RuntimeSettings, LoadedFile]:
@@ -167,60 +169,108 @@ class TradingConfig:
     LOCKFILE_PATH: str = "trading.lock"
 
     @property
-    def STARTING_CAPITAL(self) -> float: return self.runtime.starting_capital_inr
-    @property
-    def BROKER_TYPE(self) -> str: return self.runtime.broker_type
+    def STARTING_CAPITAL(self) -> float:
+        return self.runtime.starting_capital_inr
 
     @property
-    def MAX_CAPITAL_PER_TRADE(self) -> float: return self.risk.max_order_notional_inr
-    @property
-    def MAX_CONCURRENT_POSITIONS(self) -> int: return self.risk.max_open_positions
-    @property
-    def MAX_DAILY_LOSS(self) -> float: return self.risk.max_daily_loss_inr
-    @property
-    def MAX_ACCOUNT_DRAWDOWN_PCT(self) -> float: return self.risk.max_drawdown_pct
-    @property
-    def MAX_SPREAD_PCT(self) -> float: return self.risk.max_spread_pct
-    @property
-    def CIRCUIT_BUFFER_PCT(self) -> float: return self.risk.circuit_buffer_pct
-    @property
-    def MIN_ADV_INR(self) -> float: return self.risk.min_adv_inr
-    @property
-    def MARKET_START_ENTRY(self) -> str: return self.risk.entry_window_start
-    @property
-    def MARKET_STOP_ENTRY(self) -> str: return self.risk.entry_window_end
-    @property
-    def MANDATORY_SQUAREOFF(self) -> str: return self.risk.mandatory_squareoff
+    def BROKER_TYPE(self) -> str:
+        return self.runtime.broker_type
 
     @property
-    def TARGET_PROFIT_PCT(self) -> float: return self.strategy.take_profit_pct
-    @property
-    def STOP_LOSS_PCT(self) -> float: return self.strategy.stop_loss_pct
-    @property
-    def MAX_HOLDING_MINUTES(self) -> int: return self.strategy.max_holding_minutes
-    @property
-    def MIN_ORDER_BOOK_IMBALANCE(self) -> float: return self.strategy.min_order_book_imbalance
-    @property
-    def MIN_RELATIVE_VOLUME(self) -> float: return self.strategy.min_relative_volume
-    @property
-    def MIN_CALIBRATED_PROBABILITY(self) -> float: return self.strategy.min_calibrated_probability
-    @property
-    def MIN_QUALITY_SCORE(self) -> float: return self.strategy.min_quality_score
+    def MAX_CAPITAL_PER_TRADE(self) -> float:
+        return self.risk.max_order_notional_inr
 
     @property
-    def BROKERAGE_PER_ORDER(self) -> float: return self.costs.brokerage_per_order_flat
+    def MAX_CONCURRENT_POSITIONS(self) -> int:
+        return self.risk.max_open_positions
+
     @property
-    def BROKERAGE_PER_ORDER_PCT(self) -> float: return self.costs.brokerage_per_order_pct
+    def MAX_DAILY_LOSS(self) -> float:
+        return self.risk.max_daily_loss_inr
+
     @property
-    def STT_SELL_PCT(self) -> float: return self.costs.stt_sell_pct
+    def MAX_ACCOUNT_DRAWDOWN_PCT(self) -> float:
+        return self.risk.max_drawdown_pct
+
     @property
-    def EXCHANGE_TURNOVER_PCT(self) -> float: return self.costs.exchange_txn_pct
+    def MAX_SPREAD_PCT(self) -> float:
+        return self.risk.max_spread_pct
+
     @property
-    def SEBI_PCT(self) -> float: return self.costs.sebi_pct
+    def CIRCUIT_BUFFER_PCT(self) -> float:
+        return self.risk.circuit_buffer_pct
+
     @property
-    def STAMP_DUTY_BUY_PCT(self) -> float: return self.costs.stamp_duty_buy_pct
+    def MIN_ADV_INR(self) -> float:
+        return self.risk.min_adv_inr
+
     @property
-    def GST_PCT(self) -> float: return self.costs.gst_pct
+    def MARKET_START_ENTRY(self) -> str:
+        return self.risk.entry_window_start
+
+    @property
+    def MARKET_STOP_ENTRY(self) -> str:
+        return self.risk.entry_window_end
+
+    @property
+    def MANDATORY_SQUAREOFF(self) -> str:
+        return self.risk.mandatory_squareoff
+
+    @property
+    def TARGET_PROFIT_PCT(self) -> float:
+        return self.strategy.take_profit_pct
+
+    @property
+    def STOP_LOSS_PCT(self) -> float:
+        return self.strategy.stop_loss_pct
+
+    @property
+    def MAX_HOLDING_MINUTES(self) -> int:
+        return self.strategy.max_holding_minutes
+
+    @property
+    def MIN_ORDER_BOOK_IMBALANCE(self) -> float:
+        return self.strategy.min_order_book_imbalance
+
+    @property
+    def MIN_RELATIVE_VOLUME(self) -> float:
+        return self.strategy.min_relative_volume
+
+    @property
+    def MIN_CALIBRATED_PROBABILITY(self) -> float:
+        return self.strategy.min_calibrated_probability
+
+    @property
+    def MIN_QUALITY_SCORE(self) -> float:
+        return self.strategy.min_quality_score
+
+    @property
+    def BROKERAGE_PER_ORDER(self) -> float:
+        return self.costs.brokerage_per_order_flat
+
+    @property
+    def BROKERAGE_PER_ORDER_PCT(self) -> float:
+        return self.costs.brokerage_per_order_pct
+
+    @property
+    def STT_SELL_PCT(self) -> float:
+        return self.costs.stt_sell_pct
+
+    @property
+    def EXCHANGE_TURNOVER_PCT(self) -> float:
+        return self.costs.exchange_txn_pct
+
+    @property
+    def SEBI_PCT(self) -> float:
+        return self.costs.sebi_pct
+
+    @property
+    def STAMP_DUTY_BUY_PCT(self) -> float:
+        return self.costs.stamp_duty_buy_pct
+
+    @property
+    def GST_PCT(self) -> float:
+        return self.costs.gst_pct
 
 
 def load_config() -> TradingConfig:

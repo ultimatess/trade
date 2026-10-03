@@ -6,18 +6,19 @@ Reflex Calibration, and OCO Execution.
 
 import os
 import unittest
-from trade.core.config import config
-from trade.core.market_state.models import MarketSnapshot
-from trade.core.signals.models import SocialSignal
-from trade.core.execution.charges import IndianTaxCalculator
-from trade.core.risk.engine import RiskEngine
-from trade.strategies.social_momentum.reflex import FastReflexScorer
-from trade.core.strategy.calibration import CalibrationEngine
+
+from trade.backtesting.engine import BacktestRunner
 from trade.brokers.paper import IndianPaperBroker
-from trade.backtesting.engine import BacktestRunner, BacktestMetrics
+from trade.core.config import config
+from trade.core.execution.charges import IndianTaxCalculator
+from trade.core.market_state.models import MarketSnapshot
+from trade.core.risk.engine import RiskEngine
+from trade.core.signals.models import SocialSignal
+from trade.core.strategy.calibration import CalibrationEngine
+from trade.strategies.social_momentum.reflex import FastReflexScorer
+
 
 class TestQuantSystem(unittest.TestCase):
-
     def setUp(self):
         self.test_lockfile = "/tmp/test_trading_system.lock"
         if os.path.exists(self.test_lockfile):
@@ -32,13 +33,13 @@ class TestQuantSystem(unittest.TestCase):
         """Verifies statutory charges for a ₹20,000 roundtrip trade."""
         buy_price = 100.0
         sell_price = 101.0  # +1.00% gross gain
-        quantity = 200      # ₹20,000 turnover
+        quantity = 200  # ₹20,000 turnover
 
         charges = IndianTaxCalculator.calculate_charges(buy_price, sell_price, quantity)
         # Brokerage should be around ₹40 (₹20 buy + ₹20 sell)
         self.assertAlmostEqual(charges["brokerage"], 12.06, delta=30.0)
-        self.assertGreater(charges["stt"], 4.0)       # STT on sell
-        self.assertGreater(charges["gst"], 2.0)       # GST
+        self.assertGreater(charges["stt"], 4.0)  # STT on sell
+        self.assertGreater(charges["gst"], 2.0)  # GST
         self.assertGreater(charges["total_charges"], 10.0)
         # Gross gain is ₹200.00
         self.assertEqual(charges["gross_pnl"], 200.0)
@@ -48,20 +49,36 @@ class TestQuantSystem(unittest.TestCase):
     def test_risk_engine_trading_hours_veto(self):
         """Pre-market or post-market orders must be strictly vetoed."""
         snapshot = MarketSnapshot(
-            symbol="TATASTEEL", timestamp=1000.0, last_price=150.0,
-            bid=149.95, ask=150.05, bid_depth=20000, ask_depth=5000,
-            vwap=149.5, relative_volume=3.5, upper_circuit=165.0,
-            lower_circuit=135.0, adv_inr=150_000_000.0
+            symbol="TATASTEEL",
+            timestamp=1000.0,
+            last_price=150.0,
+            bid=149.95,
+            ask=150.05,
+            bid_depth=20000,
+            ask_depth=5000,
+            vwap=149.5,
+            relative_volume=3.5,
+            upper_circuit=165.0,
+            lower_circuit=135.0,
+            adv_inr=150_000_000.0,
         )
         signal = SocialSignal(
-            symbol="TATASTEEL", timestamp=1000.0, mentions_count=45,
-            velocity_zscore=3.8, unique_verified_ratio=0.8, spam_cluster_score=0.1
+            symbol="TATASTEEL",
+            timestamp=1000.0,
+            mentions_count=45,
+            velocity_zscore=3.8,
+            unique_verified_ratio=0.8,
+            spam_cluster_score=0.1,
         )
 
         # Before 09:30 AM IST
         passed, reasons = self.risk_engine.validate_pre_trade_gates(
-            snapshot=snapshot, signal=signal, current_equity=100_000.0,
-            current_positions_count=0, daily_loss_incurred=0.0, time_str="09:15"
+            snapshot=snapshot,
+            signal=signal,
+            current_equity=100_000.0,
+            current_positions_count=0,
+            daily_loss_incurred=0.0,
+            time_str="09:15",
         )
         self.assertFalse(passed)
         self.assertTrue(any("OUTSIDE_TRADING_WINDOW" in r for r in reasons))
@@ -70,19 +87,35 @@ class TestQuantSystem(unittest.TestCase):
         """Orders near Upper or Lower Circuit must be vetoed to avoid liquidity lock."""
         # Price is at 164.50 with Upper Circuit at 165.0 (0.3% away < 1.5% buffer)
         snapshot = MarketSnapshot(
-            symbol="ZOMATO", timestamp=1000.0, last_price=164.50,
-            bid=164.40, ask=164.60, bid_depth=20000, ask_depth=5000,
-            vwap=160.0, relative_volume=4.0, upper_circuit=165.0,
-            lower_circuit=135.0, adv_inr=150_000_000.0
+            symbol="ZOMATO",
+            timestamp=1000.0,
+            last_price=164.50,
+            bid=164.40,
+            ask=164.60,
+            bid_depth=20000,
+            ask_depth=5000,
+            vwap=160.0,
+            relative_volume=4.0,
+            upper_circuit=165.0,
+            lower_circuit=135.0,
+            adv_inr=150_000_000.0,
         )
         signal = SocialSignal(
-            symbol="ZOMATO", timestamp=1000.0, mentions_count=50,
-            velocity_zscore=4.0, unique_verified_ratio=0.85, spam_cluster_score=0.05
+            symbol="ZOMATO",
+            timestamp=1000.0,
+            mentions_count=50,
+            velocity_zscore=4.0,
+            unique_verified_ratio=0.85,
+            spam_cluster_score=0.05,
         )
 
         passed, reasons = self.risk_engine.validate_pre_trade_gates(
-            snapshot=snapshot, signal=signal, current_equity=100_000.0,
-            current_positions_count=0, daily_loss_incurred=0.0, time_str="11:00"
+            snapshot=snapshot,
+            signal=signal,
+            current_equity=100_000.0,
+            current_positions_count=0,
+            daily_loss_incurred=0.0,
+            time_str="11:00",
         )
         self.assertFalse(passed)
         self.assertTrue(any("TOO_CLOSE_TO_UPPER_CIRCUIT" in r for r in reasons))
@@ -90,20 +123,36 @@ class TestQuantSystem(unittest.TestCase):
     def test_kill_switch_triggers_on_daily_loss(self):
         """Reaching ₹2,000 daily loss immediately trips kill switch."""
         snapshot = MarketSnapshot(
-            symbol="RELIANCE", timestamp=1000.0, last_price=2500.0,
-            bid=2499.5, ask=2500.5, bid_depth=20000, ask_depth=5000,
-            vwap=2490.0, relative_volume=3.5, upper_circuit=2750.0,
-            lower_circuit=2250.0, adv_inr=500_000_000.0
+            symbol="RELIANCE",
+            timestamp=1000.0,
+            last_price=2500.0,
+            bid=2499.5,
+            ask=2500.5,
+            bid_depth=20000,
+            ask_depth=5000,
+            vwap=2490.0,
+            relative_volume=3.5,
+            upper_circuit=2750.0,
+            lower_circuit=2250.0,
+            adv_inr=500_000_000.0,
         )
         signal = SocialSignal(
-            symbol="RELIANCE", timestamp=1000.0, mentions_count=40,
-            velocity_zscore=3.5, unique_verified_ratio=0.85, spam_cluster_score=0.1
+            symbol="RELIANCE",
+            timestamp=1000.0,
+            mentions_count=40,
+            velocity_zscore=3.5,
+            unique_verified_ratio=0.85,
+            spam_cluster_score=0.1,
         )
 
         # Incurred loss of ₹2,100 (breaches ₹2,000 limit)
         passed, reasons = self.risk_engine.validate_pre_trade_gates(
-            snapshot=snapshot, signal=signal, current_equity=97_900.0,
-            current_positions_count=0, daily_loss_incurred=2100.0, time_str="11:00"
+            snapshot=snapshot,
+            signal=signal,
+            current_equity=97_900.0,
+            current_positions_count=0,
+            daily_loss_incurred=2100.0,
+            time_str="11:00",
         )
         self.assertFalse(passed)
         self.assertTrue(self.risk_engine.is_kill_switch_active())
@@ -115,14 +164,26 @@ class TestQuantSystem(unittest.TestCase):
         scorer = FastReflexScorer(calibrator)
 
         snapshot = MarketSnapshot(
-            symbol="INFY", timestamp=1000.0, last_price=1600.0,
-            bid=1599.5, ask=1600.5, bid_depth=30000, ask_depth=8000,
-            vwap=1595.0, relative_volume=4.5, upper_circuit=1760.0,
-            lower_circuit=1440.0, adv_inr=300_000_000.0
+            symbol="INFY",
+            timestamp=1000.0,
+            last_price=1600.0,
+            bid=1599.5,
+            ask=1600.5,
+            bid_depth=30000,
+            ask_depth=8000,
+            vwap=1595.0,
+            relative_volume=4.5,
+            upper_circuit=1760.0,
+            lower_circuit=1440.0,
+            adv_inr=300_000_000.0,
         )
         signal = SocialSignal(
-            symbol="INFY", timestamp=1000.0, mentions_count=60,
-            velocity_zscore=4.2, unique_verified_ratio=0.9, spam_cluster_score=0.05
+            symbol="INFY",
+            timestamp=1000.0,
+            mentions_count=60,
+            velocity_zscore=4.2,
+            unique_verified_ratio=0.9,
+            spam_cluster_score=0.05,
         )
 
         decision = scorer.evaluate(snapshot, signal)
@@ -136,7 +197,9 @@ class TestQuantSystem(unittest.TestCase):
         entry_price = 100.0
 
         # Place Entry
-        order = broker.submit_bracket_entry("TEST_STOCK", capital_fraction=0.20, current_price=entry_price, current_time=1000.0)
+        order = broker.submit_bracket_entry(
+            "TEST_STOCK", capital_fraction=0.20, current_price=entry_price, current_time=1000.0
+        )
         self.assertIsNotNone(order)
         self.assertIn("TEST_STOCK", broker.positions)
         pos = broker.positions["TEST_STOCK"]

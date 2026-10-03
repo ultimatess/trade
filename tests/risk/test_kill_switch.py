@@ -13,16 +13,34 @@ pytestmark = pytest.mark.critical
 
 needs_non_root = pytest.mark.skipif(hasattr(os, "geteuid") and os.geteuid() == 0, reason="root ignores permissions")
 
-SNAP = MarketSnapshot(symbol="INFY", timestamp=1.0, last_price=1600.0, bid=1599.8, ask=1600.2, bid_depth=30000,
-                      ask_depth=8000, vwap=1595.0, relative_volume=4.5, upper_circuit=1760.0,
-                      lower_circuit=1440.0, adv_inr=3e8)
-SIG = SocialSignal(symbol="INFY", timestamp=1.0, mentions_count=60, velocity_zscore=4.2,
-                   unique_verified_ratio=0.9, spam_cluster_score=0.05)
+SNAP = MarketSnapshot(
+    symbol="INFY",
+    timestamp=1.0,
+    last_price=1600.0,
+    bid=1599.8,
+    ask=1600.2,
+    bid_depth=30000,
+    ask_depth=8000,
+    vwap=1595.0,
+    relative_volume=4.5,
+    upper_circuit=1760.0,
+    lower_circuit=1440.0,
+    adv_inr=3e8,
+)
+SIG = SocialSignal(
+    symbol="INFY",
+    timestamp=1.0,
+    mentions_count=60,
+    velocity_zscore=4.2,
+    unique_verified_ratio=0.9,
+    spam_cluster_score=0.05,
+)
 
 
 def gates(engine):
-    return engine.validate_pre_trade_gates(SNAP, SIG, current_equity=100_000.0, current_positions_count=0,
-                                           daily_loss_incurred=0.0, time_str="11:00")
+    return engine.validate_pre_trade_gates(
+        SNAP, SIG, current_equity=100_000.0, current_positions_count=0, daily_loss_incurred=0.0, time_str="11:00"
+    )
 
 
 def test_clean_state_allows_and_trigger_blocks(tmp_path):
@@ -109,7 +127,8 @@ def test_default_location_is_absolute_state_dir(tmp_path, monkeypatch):
 
 def test_daily_loss_breach_triggers_persistent_kill(tmp_path):
     engine = RiskEngine(lockfile_path=str(tmp_path / "k.lock"))
-    passed, reasons = engine.validate_pre_trade_gates(SNAP, SIG, current_equity=97_900.0, current_positions_count=0,
-                                                      daily_loss_incurred=2_000.0, time_str="11:00")
+    passed, reasons = engine.validate_pre_trade_gates(
+        SNAP, SIG, current_equity=97_900.0, current_positions_count=0, daily_loss_incurred=2_000.0, time_str="11:00"
+    )
     assert passed is False and "DAILY_LOSS_LIMIT_EXCEEDED" in reasons
     assert RiskEngine(lockfile_path=str(tmp_path / "k.lock")).is_kill_switch_active()

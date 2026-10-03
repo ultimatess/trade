@@ -6,7 +6,8 @@ the price shock (docs/CURRENT_STATE.md section 6). Kept as a Phase 1-2 golden fi
 
 from trade.backtesting.engine import BacktestRunner
 
-def main():
+
+def main() -> None:
     print("=" * 75)
     print("LEGACY SYNTHETIC SIMULATION (500 x 1-min synthetic candles) - NOT EVIDENCE OF EDGE")
     print("Gates: Sharpe > 1.5 | Max Drawdown < 15% | Hit Rate > 55% | t-stat > 2.0")
@@ -15,17 +16,23 @@ def main():
     runner = BacktestRunner(seed=42)
     metrics = runner.run_multi_regime_simulation(total_candles=500)
 
-    print(f"Total Completed Trades : {metrics['total_trades']}")
-    print(f"Wins / Losses          : {metrics['wins']} W / {metrics['losses']} L")
-    print(f"Hit Rate               : {metrics['hit_rate_pct']:.2f}%  (Gate: >= 55.0%) -> {'PASS' if metrics['gate_hit_rate_passed'] else 'FAIL'}")
-    print(f"Net Realized P&L       : ₹{metrics['net_pnl']:+,.2f} (After all Indian statutory charges)")
-    print(f"Ending Equity          : ₹{metrics['final_equity']:,.2f}")
-    print(f"Sharpe Ratio           : {metrics['sharpe_ratio']:.2f}  (Gate: >= 1.50)  -> {'PASS' if metrics['gate_sharpe_passed'] else 'FAIL'}")
-    print(f"Max Drawdown           : {metrics['max_drawdown_pct']:.2f}%  (Gate: <= 15.0%) -> {'PASS' if metrics['gate_max_dd_passed'] else 'FAIL'}")
-    print(f"t-stat (all trades)    : {metrics['t_statistic']:.2f}  (Gate: >= 2.00)  -> {'PASS' if metrics['gate_t_stat_passed'] else 'FAIL'}")
+    def gate(passed: bool) -> str:
+        return "PASS" if passed else "FAIL"
+
+    m = metrics
+    print(f"Total Completed Trades : {m['total_trades']}")
+    print(f"Wins / Losses          : {m['wins']} W / {m['losses']} L")
+    print(f"Hit Rate               : {m['hit_rate_pct']:.2f}%  (Gate: >= 55.0%) -> {gate(m['gate_hit_rate_passed'])}")
+    print(f"Net Realized P&L       : ₹{m['net_pnl']:+,.2f} (After all Indian statutory charges)")
+    print(f"Ending Equity          : ₹{m['final_equity']:,.2f}")
+    print(f"Sharpe Ratio           : {m['sharpe_ratio']:.2f}  (Gate: >= 1.50)  -> {gate(m['gate_sharpe_passed'])}")
+    print(f"Max Drawdown           : {m['max_drawdown_pct']:.2f}%  (Gate: <= 15.0%) -> {gate(m['gate_max_dd_passed'])}")
+    print(f"t-stat (all trades)    : {m['t_statistic']:.2f}  (Gate: >= 2.00)  -> {gate(m['gate_t_stat_passed'])}")
     print("-" * 75)
-    print(f"LEGACY GATE STATUS     : {'PASSED' if metrics['passed_all_gates'] else 'REJECTED'} on synthetic data; not a validation result")
+    status = "PASSED" if m["passed_all_gates"] else "REJECTED"
+    print(f"LEGACY GATE STATUS     : {status} on synthetic data; not a validation result")
     print("=" * 75)
+
 
 if __name__ == "__main__":
     main()

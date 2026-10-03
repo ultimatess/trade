@@ -3,21 +3,22 @@ Indian Equity Statutory Charges & Taxation Calculator (NSE Intraday MIS).
 Computes brokerage, STT, Exchange transaction charges, SEBI fees, Stamp Duty, and GST.
 """
 
-from typing import Dict
 from trade.core.config import config
+
 
 class IndianTaxCalculator:
     """Statutory and brokerage charges per round trip, from the configured cost model."""
 
     @staticmethod
-    def calculate_charges(buy_price: float, sell_price: float, quantity: int) -> Dict[str, float]:
+    def calculate_charges(buy_price: float, sell_price: float, quantity: int) -> dict[str, float]:
         turnover_buy = buy_price * quantity
         turnover_sell = sell_price * quantity
         total_turnover = turnover_buy + turnover_sell
 
         # 1. Brokerage: min(flat ₹20, 0.03% of leg turnover) per executed leg
-        brokerage = min(config.BROKERAGE_PER_ORDER, turnover_buy * config.BROKERAGE_PER_ORDER_PCT) + \
-                    min(config.BROKERAGE_PER_ORDER, turnover_sell * config.BROKERAGE_PER_ORDER_PCT)
+        brokerage = min(config.BROKERAGE_PER_ORDER, turnover_buy * config.BROKERAGE_PER_ORDER_PCT) + min(
+            config.BROKERAGE_PER_ORDER, turnover_sell * config.BROKERAGE_PER_ORDER_PCT
+        )
 
         # 2. STT: 0.025% on sell turnover for equity intraday
         stt = turnover_sell * config.STT_SELL_PCT
@@ -51,5 +52,5 @@ class IndianTaxCalculator:
             "total_charges": round(total_charges, 2),
             "gross_pnl": round(gross_pnl, 2),
             "net_pnl": round(net_pnl, 2),
-            "net_roi_pct": round((net_pnl / turnover_buy) * 100, 3) if turnover_buy > 0 else 0.0
+            "net_roi_pct": round((net_pnl / turnover_buy) * 100, 3) if turnover_buy > 0 else 0.0,
         }

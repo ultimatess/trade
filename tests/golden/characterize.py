@@ -16,24 +16,23 @@ import random
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
-from trade.core.config import config
-from trade.core.market_state.models import MarketSnapshot
-from trade.core.signals.models import SocialSignal
-from trade.core.execution.charges import IndianTaxCalculator
-from trade.core.risk.engine import RiskEngine
-from trade.core.strategy.calibration import CalibrationEngine
-from trade.strategies.social_momentum.reflex import FastReflexScorer
-from trade.data.providers.social import SocialMomentumScanner
-from trade.brokers.paper import IndianPaperBroker
 from trade.backtesting.engine import BacktestRunner
+from trade.brokers.paper import IndianPaperBroker
+from trade.core.execution.charges import IndianTaxCalculator
+from trade.core.market_state.models import MarketSnapshot
+from trade.core.risk.engine import RiskEngine
+from trade.core.signals.models import SocialSignal
+from trade.core.strategy.calibration import CalibrationEngine
+from trade.data.providers.social import SocialMomentumScanner
 from trade.paper.trading_system import QuantTradingSystem
+from trade.strategies.social_momentum.reflex import FastReflexScorer
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 
 
-def _case_grid(n: int = 300, seed: int = 7) -> List[Dict[str, Any]]:
+def _case_grid(n: int = 300, seed: int = 7) -> list[dict[str, Any]]:
     """Deterministic (snapshot, signal, context) inputs spanning pass and veto regions."""
     rng = random.Random(seed)
     cases = []
@@ -42,52 +41,77 @@ def _case_grid(n: int = 300, seed: int = 7) -> List[Dict[str, Any]]:
         spread = price * rng.choice([0.0004, 0.0012, 0.0030])
         upper = price * rng.choice([1.005, 1.02, 1.10])
         lower = price * rng.choice([0.995, 0.98, 0.90])
-        cases.append({
-            "snapshot": dict(
-                symbol=f"SYM{i % 7}", timestamp=1_700_000_000.0 + 60 * i, last_price=price,
-                bid=price - spread / 2, ask=price + spread / 2,
-                bid_depth=rng.uniform(0, 60_000), ask_depth=rng.uniform(0, 60_000),
-                vwap=price * rng.uniform(0.99, 1.01), relative_volume=rng.uniform(0.5, 9.0),
-                upper_circuit=upper, lower_circuit=lower,
-                adv_inr=rng.choice([5e7, 1.5e8, 5e8]),
-            ),
-            "signal": dict(
-                symbol=f"SYM{i % 7}", timestamp=1_700_000_000.0 + 60 * i,
-                mentions_count=rng.randint(0, 200), velocity_zscore=rng.uniform(-1.0, 8.0),
-                unique_verified_ratio=rng.uniform(0.0, 1.0), spam_cluster_score=rng.uniform(0.0, 1.0),
-            ),
-            "context": dict(
-                current_equity=100_000.0, current_positions_count=rng.randint(0, 3),
-                daily_loss_incurred=rng.choice([0.0, 1999.99, 2000.0, 2500.0]),
-                time_str=rng.choice(["09:15", "09:30", "11:00", "14:30", "14:31", "15:20"]),
-            ),
-        })
+        cases.append(
+            {
+                "snapshot": dict(
+                    symbol=f"SYM{i % 7}",
+                    timestamp=1_700_000_000.0 + 60 * i,
+                    last_price=price,
+                    bid=price - spread / 2,
+                    ask=price + spread / 2,
+                    bid_depth=rng.uniform(0, 60_000),
+                    ask_depth=rng.uniform(0, 60_000),
+                    vwap=price * rng.uniform(0.99, 1.01),
+                    relative_volume=rng.uniform(0.5, 9.0),
+                    upper_circuit=upper,
+                    lower_circuit=lower,
+                    adv_inr=rng.choice([5e7, 1.5e8, 5e8]),
+                ),
+                "signal": dict(
+                    symbol=f"SYM{i % 7}",
+                    timestamp=1_700_000_000.0 + 60 * i,
+                    mentions_count=rng.randint(0, 200),
+                    velocity_zscore=rng.uniform(-1.0, 8.0),
+                    unique_verified_ratio=rng.uniform(0.0, 1.0),
+                    spam_cluster_score=rng.uniform(0.0, 1.0),
+                ),
+                "context": dict(
+                    current_equity=100_000.0,
+                    current_positions_count=rng.randint(0, 3),
+                    daily_loss_incurred=rng.choice([0.0, 1999.99, 2000.0, 2500.0]),
+                    time_str=rng.choice(["09:15", "09:30", "11:00", "14:30", "14:31", "15:20"]),
+                ),
+            }
+        )
     # Near-threshold region: most gates pass, so individual gate flips are exercised.
     for i in range(150):
         price = rng.choice([156.4, 1450.0])
-        cases.append({
-            "snapshot": dict(
-                symbol=f"NP{i % 5}", timestamp=1_700_100_000.0 + 60 * i, last_price=price,
-                bid=price * 0.9998, ask=price * 1.0002,
-                bid_depth=rng.uniform(25_000, 60_000), ask_depth=rng.uniform(2_000, 18_000),
-                vwap=price * rng.uniform(0.995, 1.003), relative_volume=rng.uniform(2.5, 8.0),
-                upper_circuit=price * 1.10, lower_circuit=price * 0.90, adv_inr=1.5e8,
-            ),
-            "signal": dict(
-                symbol=f"NP{i % 5}", timestamp=1_700_100_000.0 + 60 * i,
-                mentions_count=rng.randint(20, 120), velocity_zscore=rng.uniform(2.0, 8.0),
-                unique_verified_ratio=rng.uniform(0.5, 1.0), spam_cluster_score=rng.uniform(0.0, 0.4),
-            ),
-            "context": dict(
-                current_equity=100_000.0, current_positions_count=rng.randint(0, 2),
-                daily_loss_incurred=rng.choice([0.0, 1999.99]),
-                time_str=rng.choice(["09:30", "11:00", "14:30"]),
-            ),
-        })
+        cases.append(
+            {
+                "snapshot": dict(
+                    symbol=f"NP{i % 5}",
+                    timestamp=1_700_100_000.0 + 60 * i,
+                    last_price=price,
+                    bid=price * 0.9998,
+                    ask=price * 1.0002,
+                    bid_depth=rng.uniform(25_000, 60_000),
+                    ask_depth=rng.uniform(2_000, 18_000),
+                    vwap=price * rng.uniform(0.995, 1.003),
+                    relative_volume=rng.uniform(2.5, 8.0),
+                    upper_circuit=price * 1.10,
+                    lower_circuit=price * 0.90,
+                    adv_inr=1.5e8,
+                ),
+                "signal": dict(
+                    symbol=f"NP{i % 5}",
+                    timestamp=1_700_100_000.0 + 60 * i,
+                    mentions_count=rng.randint(20, 120),
+                    velocity_zscore=rng.uniform(2.0, 8.0),
+                    unique_verified_ratio=rng.uniform(0.5, 1.0),
+                    spam_cluster_score=rng.uniform(0.0, 0.4),
+                ),
+                "context": dict(
+                    current_equity=100_000.0,
+                    current_positions_count=rng.randint(0, 2),
+                    daily_loss_incurred=rng.choice([0.0, 1999.99]),
+                    time_str=rng.choice(["09:30", "11:00", "14:30"]),
+                ),
+            }
+        )
     return cases
 
 
-def characterize_reflex() -> List[Dict[str, Any]]:
+def characterize_reflex() -> list[dict[str, Any]]:
     scorer = FastReflexScorer(CalibrationEngine())
     out = []
     for c in _case_grid():
@@ -96,7 +120,7 @@ def characterize_reflex() -> List[Dict[str, Any]]:
     return out
 
 
-def characterize_risk() -> List[Dict[str, Any]]:
+def characterize_risk() -> list[dict[str, Any]]:
     out = []
     with tempfile.TemporaryDirectory() as tmp:
         for i, c in enumerate(_case_grid()):
@@ -108,31 +132,39 @@ def characterize_risk() -> List[Dict[str, Any]]:
     return out
 
 
-def characterize_charges() -> List[Dict[str, Any]]:
+def characterize_charges() -> list[dict[str, Any]]:
     out = []
     for buy in [10.0, 100.0, 156.4, 1450.0, 2480.0]:
         for move in [-0.0075, -0.007, 0.0, 0.005, 0.01]:
             for qty in [1, 13, 200, 1000]:
-                out.append({"buy": buy, "sell": round(buy * (1 + move), 2), "qty": qty,
-                            "charges": IndianTaxCalculator.calculate_charges(buy, round(buy * (1 + move), 2), qty)})
+                out.append(
+                    {
+                        "buy": buy,
+                        "sell": round(buy * (1 + move), 2),
+                        "qty": qty,
+                        "charges": IndianTaxCalculator.calculate_charges(buy, round(buy * (1 + move), 2), qty),
+                    }
+                )
     return out
 
 
-def _broker_state(b: IndianPaperBroker) -> Dict[str, Any]:
+def _broker_state(b: IndianPaperBroker) -> dict[str, Any]:
     return {
-        "cash": b.cash, "total_equity": b.total_equity,
-        "daily_realized_loss": b.daily_realized_loss, "daily_realized_pnl": b.daily_realized_pnl,
+        "cash": b.cash,
+        "total_equity": b.total_equity,
+        "daily_realized_loss": b.daily_realized_loss,
+        "daily_realized_pnl": b.daily_realized_pnl,
         "positions": {k: dataclasses.asdict(v) for k, v in sorted(b.positions.items())},
         "trades": [dataclasses.asdict(t) for t in b.trade_history],
     }
 
 
-def characterize_broker() -> Dict[str, Any]:
-    scenarios: Dict[str, Any] = {}
+def characterize_broker() -> dict[str, Any]:
+    scenarios: dict[str, Any] = {}
 
     b = IndianPaperBroker(100_000.0)
     order = b.submit_bracket_entry("A", 0.2, 100.0, 1000.0)
-    b.update_price_tick("A", 99.9, 1060.0)                       # no exit
+    b.update_price_tick("A", 99.9, 1060.0)  # no exit
     b.update_price_tick("A", b.positions["A"].target_price + 0.1, 1120.0)
     scenarios["take_profit"] = {"order_qty": order.quantity, "order_price": order.price, **_broker_state(b)}
 
@@ -156,7 +188,7 @@ def characterize_broker() -> Dict[str, Any]:
 
     b = IndianPaperBroker(100_000.0)
     t = 1000.0
-    for i in range(6):                                            # repeated trades expose D-001 cash drift
+    for _ in range(6):  # repeated trades expose D-001 cash drift
         b.submit_bracket_entry("G", 0.2, 100.0, t)
         b.update_price_tick("G", b.positions["G"].target_price, t + 60)
         t += 120
@@ -164,7 +196,7 @@ def characterize_broker() -> Dict[str, Any]:
     return scenarios
 
 
-def characterize_social() -> List[Dict[str, Any]]:
+def characterize_social() -> list[dict[str, Any]]:
     s = SocialMomentumScanner()
     t0 = 1_700_000_000.0
     seq = [
@@ -177,7 +209,7 @@ def characterize_social() -> List[Dict[str, Any]]:
     return [dataclasses.asdict(s.sanitize_and_extract_signal(sym, tw, ts)) for sym, tw, ts in seq]
 
 
-def characterize_backtest() -> Dict[str, Any]:
+def characterize_backtest() -> dict[str, Any]:
     out = {}
     with tempfile.TemporaryDirectory():
         for seed, n in [(1, 500), (2, 500), (3, 500), (42, 500), (123, 500), (123, 150)]:
@@ -185,7 +217,7 @@ def characterize_backtest() -> Dict[str, Any]:
     return out
 
 
-def characterize_paper_cycle() -> Dict[str, Any]:
+def characterize_paper_cycle() -> dict[str, Any]:
     with tempfile.TemporaryDirectory() as tmp:
         system = QuantTradingSystem()
         system.risk_engine = RiskEngine(lockfile_path=str(Path(tmp) / "paper.lock"))
@@ -199,9 +231,11 @@ def characterize_paper_cycle() -> Dict[str, Any]:
         ]
         for sym, px, bd, ad, rv, adv, tw, ts_str, ts in steps:
             system.run_single_cycle(sym, px, bd, ad, rv, adv, tw, simulated_time_str=ts_str, timestamp=ts)
-        return {"broker": _broker_state(system.broker),
-                "brier": system.calibration_engine.compute_brier_score(),
-                "calibration_history": system.calibration_engine.history}
+        return {
+            "broker": _broker_state(system.broker),
+            "brier": system.calibration_engine.compute_brier_score(),
+            "calibration_history": system.calibration_engine.history,
+        }
 
 
 SUITES = {
@@ -220,7 +254,7 @@ def normalize(obj: Any) -> Any:
     return json.loads(json.dumps(obj, sort_keys=True))
 
 
-def main(argv: List[str]) -> int:
+def main(argv: list[str]) -> int:
     if "--write" not in argv:
         print("usage: python -m tests.golden.characterize --write")
         return 2

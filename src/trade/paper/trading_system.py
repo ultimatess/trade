@@ -4,33 +4,26 @@ Coordinates Ingestion, Deterministic Risk Vetoes, Fast Reflex Scoring,
 and Idempotent OCO Bracket Order Routing.
 """
 
-import time
 import logging
-import sys
-from typing import Dict, List
-from datetime import datetime
+import time
 
+from trade.brokers.paper import IndianPaperBroker
 from trade.core.config import config
 from trade.core.market_state.models import MarketSnapshot
-from trade.core.signals.models import SocialSignal
 from trade.core.risk.engine import RiskEngine
-from trade.strategies.social_momentum.reflex import FastReflexScorer
 from trade.core.strategy.calibration import CalibrationEngine
 from trade.data.providers.social import SocialMomentumScanner
-from trade.brokers.paper import IndianPaperBroker
+from trade.strategies.social_momentum.reflex import FastReflexScorer
 
 # Setup clean structured logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    datefmt="%H:%M:%S"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%H:%M:%S")
 logger = logging.getLogger("QuantLoop")
+
 
 class QuantTradingSystem:
     """Master orchestrator implementing the 3-layer quant execution loop."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.risk_engine = RiskEngine()
         self.calibration_engine = CalibrationEngine()
         self.reflex_scorer = FastReflexScorer(self.calibration_engine)
@@ -46,9 +39,9 @@ class QuantTradingSystem:
         ask_depth: float,
         relative_volume: float,
         adv_inr: float,
-        sample_tweets: List[str],
+        sample_tweets: list[str],
         simulated_time_str: str = "11:00",
-        timestamp: float = None
+        timestamp: float | None = None,
     ) -> None:
         """
         Executes one full iteration of the deterministic trading loop.
@@ -59,11 +52,7 @@ class QuantTradingSystem:
         # Step 1: EOD Mandatory Square-Off Check
         if simulated_time_str >= config.MANDATORY_SQUAREOFF:
             logger.warning("15:10 IST MANDATORY EOD SQUARE-OFF REACHED. Flattening open exposure.")
-            self.broker.flatten_all(
-                current_prices={symbol: current_price},
-                current_time=ts,
-                reason="EOD_SQUAREOFF"
-            )
+            self.broker.flatten_all(current_prices={symbol: current_price}, current_time=ts, reason="EOD_SQUAREOFF")
             return
 
         # Step 2: Check Active Positions & Update Trailing Brackets
@@ -91,7 +80,7 @@ class QuantTradingSystem:
             relative_volume=relative_volume,
             upper_circuit=round(current_price * 1.10, 2),
             lower_circuit=round(current_price * 0.90, 2),
-            adv_inr=adv_inr
+            adv_inr=adv_inr,
         )
 
         # Step 5: Deterministic Pre-Trade Risk Gate Validation (Layer 3 Veto)
@@ -102,7 +91,7 @@ class QuantTradingSystem:
             current_equity=self.broker.total_equity,
             current_positions_count=active_pos_count,
             daily_loss_incurred=self.broker.daily_realized_loss,
-            time_str=simulated_time_str
+            time_str=simulated_time_str,
         )
 
         if not passed_risk:
@@ -123,12 +112,8 @@ class QuantTradingSystem:
 
         # Step 7: Order Execution (Layer 3 - Idempotent OCO Bracket)
         order = self.broker.submit_bracket_entry(
-            symbol=symbol,
-            capital_fraction=decision.recommended_fraction,
-            current_price=current_price,
-            current_time=ts
+            symbol=symbol, capital_fraction=decision.recommended_fraction, current_price=current_price, current_time=ts
         )
 
         if order:
             logger.info(f"ORDER DISPATCHED: ClientOrderID={order.client_order_id} Symbol={symbol}")
-

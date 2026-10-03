@@ -24,7 +24,7 @@ import json
 import os
 import re
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from trade.core.config import _REPO_ROOT
@@ -58,15 +58,23 @@ def refresh_universe(http: HttpFn = default_http, today: date | None = None) -> 
     symbols = [r.get("Symbol", "").strip() for r in rows]
     if len(symbols) < 400 or not all(symbols):
         raise SourceError("PARSE", f"unexpected universe file ({len(symbols)} rows)")
-    day = (today or datetime.now(timezone.utc).date()).isoformat()
+    day = (today or datetime.now(UTC).date()).isoformat()
     out_dir = data_root() / "reference" / "nse"
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / f"nifty500_{day}.csv"
     path.write_bytes(body)
-    (out_dir / f"nifty500_{day}.manifest.json").write_text(json.dumps({
-        "source_url": NIFTY500_URL, "fetched_at": datetime.now(timezone.utc).isoformat(),
-        "rows": len(symbols), "sha256": hashlib.sha256(body).hexdigest(),
-    }, indent=1) + "\n")
+    (out_dir / f"nifty500_{day}.manifest.json").write_text(
+        json.dumps(
+            {
+                "source_url": NIFTY500_URL,
+                "fetched_at": datetime.now(UTC).isoformat(),
+                "rows": len(symbols),
+                "sha256": hashlib.sha256(body).hexdigest(),
+            },
+            indent=1,
+        )
+        + "\n"
+    )
     return path
 
 
@@ -108,10 +116,23 @@ def tag_day(day: str, source: str = "reddit", universe: Universe | None = None) 
             syms = tag_symbols(f"{r.get('title') or ''}\n{r.get('text') or ''}", universe)
             total += 1
             tagged += bool(syms)
-            dst.write(json.dumps({
-                "post_id": r["post_id"], "source": r["source"], "channel": r["channel"], "kind": r["kind"],
-                "event_time": r["event_time"], "available_at": r["available_at"], "author_hash": r["author_hash"],
-                "symbols": syms, "tagger_version": TAGGER_VERSION,
-                "universe_as_of": universe.as_of, "universe_sha256": universe.sha256,
-            }, sort_keys=True) + "\n")
+            dst.write(
+                json.dumps(
+                    {
+                        "post_id": r["post_id"],
+                        "source": r["source"],
+                        "channel": r["channel"],
+                        "kind": r["kind"],
+                        "event_time": r["event_time"],
+                        "available_at": r["available_at"],
+                        "author_hash": r["author_hash"],
+                        "symbols": syms,
+                        "tagger_version": TAGGER_VERSION,
+                        "universe_as_of": universe.as_of,
+                        "universe_sha256": universe.sha256,
+                    },
+                    sort_keys=True,
+                )
+                + "\n"
+            )
     return out, total, tagged

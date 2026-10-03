@@ -37,6 +37,8 @@ markers = [
 line-length = 120
 target-version = "py311"
 src = ["src", "tests"]
+include = ["*.py", "*.pyi"]          # never reformat code blocks inside docs
+extend-exclude = ["src/trade/web/static"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "S"]
@@ -46,18 +48,16 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S108"]  # temp paths in tests
+"tests/**" = ["S104", "S105", "S106", "S108"]  # fixture secrets, bind and temp-path literals
 
 [tool.mypy]
 python_version = "3.11"
 mypy_path = "src"
 packages = ["trade"]
+strict = true
 warn_unused_ignores = true
 warn_redundant_casts = true
 
-[[tool.mypy.overrides]]
-module = "trade.core.*"
-strict = true
 
 [tool.importlinter]
 root_package = "trade"

@@ -1,5 +1,6 @@
 """Configuration loading must be strict and fail closed."""
 
+import dataclasses
 import shutil
 from pathlib import Path
 
@@ -29,7 +30,7 @@ def test_repo_config_loads_and_matches_legacy_values():
 
 
 def test_risk_limits_are_immutable():
-    with pytest.raises(Exception):
+    with pytest.raises(dataclasses.FrozenInstanceError):
         cfg.config.risk.max_daily_loss_inr = 1e9  # type: ignore[misc]
 
 
@@ -41,12 +42,15 @@ def test_missing_file_fails_closed(config_copy):
 
 
 @pytest.mark.critical
-@pytest.mark.parametrize("mutation", [
-    ("max_daily_loss_inr: 2000.0", ""),                                   # missing key
-    ("version: 1", "version: 1\nmax_leverage_override: 99"),              # unknown key
-    ("max_open_positions: 2", "max_open_positions: two"),                 # wrong type
-    ("max_drawdown_pct: 0.06", "max_drawdown_pct: 5.0"),                   # out of range
-])
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        ("max_daily_loss_inr: 2000.0", ""),  # missing key
+        ("version: 1", "version: 1\nmax_leverage_override: 99"),  # unknown key
+        ("max_open_positions: 2", "max_open_positions: two"),  # wrong type
+        ("max_drawdown_pct: 0.06", "max_drawdown_pct: 5.0"),  # out of range
+    ],
+)
 def test_malformed_risk_limits_fail_closed(config_copy, mutation):
     path = config_copy / "risk_limits.yaml"
     text = path.read_text()

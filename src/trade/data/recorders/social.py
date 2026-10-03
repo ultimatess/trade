@@ -37,7 +37,7 @@ import urllib.parse
 import urllib.request
 from collections.abc import Callable, Iterable
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -76,12 +76,12 @@ class SocialRecorderConfig:
 class RawPost:
     schema_version: int
     source: str
-    kind: str                 # "post" | "comment"
-    post_id: str              # source-native fullname, e.g. t3_abc / t1_xyz
-    channel: str              # e.g. r/IndianStreetBets
-    event_time: str           # ISO-8601 UTC, from the source
-    available_at: str         # ISO-8601 UTC, our receive time
-    author_hash: str | None   # HMAC-SHA256(salt, author); None for deleted authors
+    kind: str  # "post" | "comment"
+    post_id: str  # source-native fullname, e.g. t3_abc / t1_xyz
+    channel: str  # e.g. r/IndianStreetBets
+    event_time: str  # ISO-8601 UTC, from the source
+    available_at: str  # ISO-8601 UTC, our receive time
+    author_hash: str | None  # HMAC-SHA256(salt, author); None for deleted authors
     title: str | None
     text: str
     url: str
@@ -90,7 +90,9 @@ class RawPost:
     quality_flags: tuple[str, ...] = field(default_factory=tuple)
 
 
-def default_http(method: str, url: str, headers: dict[str, str], body: bytes | None) -> tuple[int, dict[str, str], bytes]:
+def default_http(
+    method: str, url: str, headers: dict[str, str], body: bytes | None
+) -> tuple[int, dict[str, str], bytes]:
     if not url.startswith("https://"):
         raise SourceError("CONFIG", "only https URLs are allowed")
     req = urllib.request.Request(url, data=body, headers=headers, method=method)  # noqa: S310 (https enforced)
@@ -104,11 +106,11 @@ def default_http(method: str, url: str, headers: dict[str, str], body: bytes | N
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _iso(dt: datetime) -> str:
-    return dt.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    return dt.astimezone(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def load_author_salt() -> bytes:
@@ -139,12 +141,20 @@ class RedditSource:
     """Reddit OAuth (application-only, client_credentials) reader for public subreddits."""
 
     name = "reddit"
-    TOKEN_URL = "https://www.reddit.com/api/v1/access_token"
+    TOKEN_URL = "https://www.reddit.com/api/v1/access_token"  # noqa: S105 - endpoint URL, not a credential
     API = "https://oauth.reddit.com"
 
-    def __init__(self, client_id: str, client_secret: str, user_agent: str, subreddits: Iterable[str],
-                 author_salt: bytes, page_size: int = 100, http: HttpFn = default_http,
-                 clock: Callable[[], float] = time.time):
+    def __init__(
+        self,
+        client_id: str,
+        client_secret: str,
+        user_agent: str,
+        subreddits: Iterable[str],
+        author_salt: bytes,
+        page_size: int = 100,
+        http: HttpFn = default_http,
+        clock: Callable[[], float] = time.time,
+    ):
         if not (client_id and client_secret and user_agent):
             raise RecorderConfigError("REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET and REDDIT_USER_AGENT are required")
         self._client_id, self._client_secret, self._ua = client_id, client_secret, user_agent
@@ -160,18 +170,31 @@ class RedditSource:
 
     @classmethod
     def from_env(cls, cfg: SocialRecorderConfig, author_salt: bytes, http: HttpFn = default_http) -> RedditSource:
-        return cls(os.environ.get("REDDIT_CLIENT_ID", ""), os.environ.get("REDDIT_CLIENT_SECRET", ""),
-                   os.environ.get("REDDIT_USER_AGENT", ""), cfg.subreddits, author_salt, cfg.page_size, http)
+        return cls(
+            os.environ.get("REDDIT_CLIENT_ID", ""),
+            os.environ.get("REDDIT_CLIENT_SECRET", ""),
+            os.environ.get("REDDIT_USER_AGENT", ""),
+            cfg.subreddits,
+            author_salt,
+            cfg.page_size,
+            http,
+        )
 
     def channels(self) -> list[str]:
         return [f"r/{s}/{kind}" for s in self._subs for kind in ("new", "comments")]
 
     def _authenticate(self) -> None:
         basic = base64.b64encode(f"{self._client_id}:{self._client_secret}".encode()).decode()
-        status, _, body = self._http("POST", self.TOKEN_URL,
-                                     {"Authorization": f"Basic {basic}", "User-Agent": self._ua,
-                                      "Content-Type": "application/x-www-form-urlencoded"},
-                                     b"grant_type=client_credentials")
+        status, _, body = self._http(
+            "POST",
+            self.TOKEN_URL,
+            {
+                "Authorization": f"Basic {basic}",
+                "User-Agent": self._ua,
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            b"grant_type=client_credentials",
+        )
         if status != 200:
             raise SourceError("AUTH", f"token endpoint returned HTTP {status}")
         try:
@@ -185,8 +208,9 @@ class RedditSource:
         if not self._token or self._clock() >= self._token_expiry:
             self._authenticate()
         url = f"{self.API}{path}?{urllib.parse.urlencode(params)}"
-        status, headers, body = self._http("GET", url, {"Authorization": f"bearer {self._token}",
-                                                        "User-Agent": self._ua}, None)
+        status, headers, body = self._http(
+            "GET", url, {"Authorization": f"bearer {self._token}", "User-Agent": self._ua}, None
+        )
         self._track_rate_limit(headers)
         if status == 401 and not retried:
             self._token = None
@@ -223,7 +247,7 @@ class RedditSource:
 
     def to_record(self, item: dict[str, Any], available_at: datetime) -> RawPost:
         is_comment = item.get("_kind") == "t1" or "body" in item
-        created = datetime.fromtimestamp(float(item["created_utc"]), tz=timezone.utc)
+        created = datetime.fromtimestamp(float(item["created_utc"]), tz=UTC)
         flags: list[str] = []
         if created > available_at + CLOCK_SKEW_TOLERANCE:
             flags.append("EVENT_AFTER_RECEIPT")
@@ -323,8 +347,12 @@ class Recorder:
                 caught_up = True
                 break
         if not caught_up:
-            self.sink.event("GAP_POSSIBLE", channel=channel, pages=pages,
-                            detail="no overlap with recorded items within max_pages; items may be missing")
+            self.sink.event(
+                "GAP_POSSIBLE",
+                channel=channel,
+                pages=pages,
+                detail="no overlap with recorded items within max_pages; items may be missing",
+            )
         return written
 
     def run_once(self) -> dict[str, int]:

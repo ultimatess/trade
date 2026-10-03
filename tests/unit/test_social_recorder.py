@@ -2,7 +2,7 @@
 
 import json
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -10,7 +10,7 @@ import pytest
 from trade.data.recorders import social, symbols
 from trade.data.recorders.__main__ import main as cli_main
 
-T0 = datetime(2026, 10, 3, 5, 0, tzinfo=timezone.utc)
+T0 = datetime(2026, 10, 3, 5, 0, tzinfo=UTC)
 SECRET = "s3cr3t-client-value"
 
 
@@ -19,15 +19,37 @@ def listing(items, after=None):
 
 
 def post(n, created=T0 - timedelta(minutes=1), sub="IndianStreetBets", author="trader1"):
-    return {"kind": "t3", "data": {"id": f"p{n}", "name": f"t3_p{n}", "created_utc": created.timestamp(),
-                                   "author": author, "title": f"$RELIANCE post {n}", "selftext": "body",
-                                   "permalink": f"/r/{sub}/comments/p{n}/", "subreddit": sub, "score": 3}}
+    return {
+        "kind": "t3",
+        "data": {
+            "id": f"p{n}",
+            "name": f"t3_p{n}",
+            "created_utc": created.timestamp(),
+            "author": author,
+            "title": f"$RELIANCE post {n}",
+            "selftext": "body",
+            "permalink": f"/r/{sub}/comments/p{n}/",
+            "subreddit": sub,
+            "score": 3,
+        },
+    }
 
 
 def comment(n, sub="IndianStreetBets"):
-    return {"kind": "t1", "data": {"id": f"c{n}", "name": f"t1_c{n}", "created_utc": (T0 - timedelta(seconds=30)).timestamp(),
-                                   "author": "[deleted]", "body": f"INFY and TCS c{n}", "link_id": "t3_p1",
-                                   "permalink": f"/r/{sub}/comments/p1/x/c{n}/", "subreddit": sub, "score": 1}}
+    return {
+        "kind": "t1",
+        "data": {
+            "id": f"c{n}",
+            "name": f"t1_c{n}",
+            "created_utc": (T0 - timedelta(seconds=30)).timestamp(),
+            "author": "[deleted]",
+            "body": f"INFY and TCS c{n}",
+            "link_id": "t3_p1",
+            "permalink": f"/r/{sub}/comments/p1/x/c{n}/",
+            "subreddit": sub,
+            "score": 1,
+        },
+    }
 
 
 class FakeReddit:
@@ -65,8 +87,15 @@ def env(tmp_path, monkeypatch):
 
 
 def make(http, subs=("IndianStreetBets",), clock=lambda: T0, max_pages=5):
-    src = social.RedditSource("cid-123456", SECRET, "test:trade-os:0.1 (by /u/test)", subs, b"salt" * 8,
-                              http=http, clock=lambda: clock().timestamp())
+    src = social.RedditSource(
+        "cid-123456",
+        SECRET,
+        "test:trade-os:0.1 (by /u/test)",
+        subs,
+        b"salt" * 8,
+        http=http,
+        clock=lambda: clock().timestamp(),
+    )
     sink = social.JsonlSink(social.raw_social_root(), "reddit", clock=clock)
     return social.Recorder(src, sink, max_pages=max_pages, clock=clock), sink
 
@@ -82,8 +111,12 @@ def events(sink):
 
 
 def test_records_posts_and_comments_with_point_in_time_stamps(env):
-    http = FakeReddit({"/r/IndianStreetBets/new": [([post(1), post(2)], None)],
-                       "/r/IndianStreetBets/comments": [([comment(1)], None)]})
+    http = FakeReddit(
+        {
+            "/r/IndianStreetBets/new": [([post(1), post(2)], None)],
+            "/r/IndianStreetBets/comments": [([comment(1)], None)],
+        }
+    )
     rec, sink = make(http)
     assert rec.run_once() == {"r/IndianStreetBets/new": 2, "r/IndianStreetBets/comments": 1}
     out = rows(sink)
@@ -109,7 +142,7 @@ def test_dedupe_within_and_across_restarts(env):
     http = FakeReddit(pages)
     rec, sink = make(http)
     rec.run_once()
-    rec2, sink2 = make(http)                       # restart: history reloaded from disk
+    rec2, sink2 = make(http)  # restart: history reloaded from disk
     assert rec2.run_once()["r/IndianStreetBets/new"] == 1
     assert [r["post_id"] for r in rows(sink2)] == ["t3_p2", "t3_p1", "t3_p3"]
 
@@ -124,13 +157,13 @@ def test_first_poll_takes_one_page_baseline_without_gap(env):
 def test_paginates_until_overlap_and_flags_gap_when_none(env):
     http = FakeReddit({"/r/IndianStreetBets/new": [([post(1)], None)]})
     rec, sink = make(http, max_pages=2)
-    rec.run_once()                                                 # baseline: p1
+    rec.run_once()  # baseline: p1
     http.pages["/r/IndianStreetBets/new"] = [([post(5), post(4)], "t3_p4"), ([post(3), post(2)], "t3_p2")]
-    rec.run_once()                                                 # 2 pages, never reaches p1
+    rec.run_once()  # 2 pages, never reaches p1
     assert "GAP_POSSIBLE" in events(sink)
     http.pages["/r/IndianStreetBets/new"] = [([post(7), post(6)], "t3_p6"), ([post(5)], "t3_p5")]
     before = events(sink).count("GAP_POSSIBLE")
-    assert rec.run_once()["r/IndianStreetBets/new"] == 2           # stops at overlap with p5
+    assert rec.run_once()["r/IndianStreetBets/new"] == 2  # stops at overlap with p5
     assert events(sink).count("GAP_POSSIBLE") == before
 
 
@@ -172,7 +205,7 @@ def test_torn_last_line_does_not_break_restart(env):
     rec, sink = make(FakeReddit({"/r/IndianStreetBets/new": [([post(1)], None)]}))
     rec.run_once()
     with (sink.dir / "2026-10-03.jsonl").open("a") as f:
-        f.write('{"post_id": "t3_tor')                             # crash mid-write
+        f.write('{"post_id": "t3_tor')  # crash mid-write
     _, sink2 = make(FakeReddit())
     assert "t3_p1" in sink2.seen
 
@@ -181,7 +214,7 @@ def test_torn_last_line_does_not_break_restart(env):
 def test_refuses_to_start_without_credentials(env, monkeypatch, capsys):
     for k in ("REDDIT_CLIENT_ID", "REDDIT_CLIENT_SECRET", "REDDIT_USER_AGENT"):
         monkeypatch.delenv(k, raising=False)
-    monkeypatch.chdir(env)                                         # no .env here
+    monkeypatch.chdir(env)  # no .env here
     assert cli_main(["run", "--once"]) == 2
     assert "REFUSING TO START" in capsys.readouterr().err
 
@@ -190,6 +223,7 @@ def test_refuses_to_start_without_credentials(env, monkeypatch, capsys):
 def test_client_secret_never_written_or_logged(env, caplog, monkeypatch):
     monkeypatch.setenv("REDDIT_CLIENT_SECRET", SECRET)
     from trade.core.env import install_redaction
+
     install_redaction()
     caplog.handler.addFilter(__import__("trade.core.env", fromlist=["RedactingFilter"]).RedactingFilter())
     rec, sink = make(FakeReddit(listing_status=[500]))
@@ -209,29 +243,36 @@ def test_only_https_is_allowed():
 
 # --- symbol tagging ---------------------------------------------------------
 
-UNIVERSE = symbols.Universe(frozenset({"RELIANCE", "INFY", "TCS", "M&M", "IDEA", "LT", "TATASTEEL"}),
-                            "2026-10-03", "0" * 64, "test")
+UNIVERSE = symbols.Universe(
+    frozenset({"RELIANCE", "INFY", "TCS", "M&M", "IDEA", "LT", "TATASTEEL"}), "2026-10-03", "0" * 64, "test"
+)
 
 
-@pytest.mark.parametrize("text,expected", [
-    ("$RELIANCE breakout", ["RELIANCE"]),
-    ("$reliance and $infy", ["INFY", "RELIANCE"]),
-    ("INFY and TCS results today", ["INFY", "TCS"]),
-    ("infy results", []),                          # bare lowercase is not a ticker
-    ("Great IDEA to buy", []),                     # ambiguous bare word
-    ("$IDEA is cheap", ["IDEA"]),                  # ...but explicit cashtag counts
-    ("LT looks strong", []),                       # 2-char bare tokens ignored
-    ("M&M up 3%", ["M&M"]),
-    ("NSE:TATASTEEL / TATASTEEL.NS", ["TATASTEEL"]),
-    ("TCSX is not TCS-like", []),
-])
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("$RELIANCE breakout", ["RELIANCE"]),
+        ("$reliance and $infy", ["INFY", "RELIANCE"]),
+        ("INFY and TCS results today", ["INFY", "TCS"]),
+        ("infy results", []),  # bare lowercase is not a ticker
+        ("Great IDEA to buy", []),  # ambiguous bare word
+        ("$IDEA is cheap", ["IDEA"]),  # ...but explicit cashtag counts
+        ("LT looks strong", []),  # 2-char bare tokens ignored
+        ("M&M up 3%", ["M&M"]),
+        ("NSE:TATASTEEL / TATASTEEL.NS", ["TATASTEEL"]),
+        ("TCSX is not TCS-like", []),
+    ],
+)
 def test_tagger_v1(text, expected):
     assert symbols.tag_symbols(text, UNIVERSE) == expected
 
 
 def test_tag_day_writes_versioned_derived_dataset(env):
-    rec, sink = make(FakeReddit({"/r/IndianStreetBets/new": [([post(1)], None)],
-                                 "/r/IndianStreetBets/comments": [([comment(1)], None)]}))
+    rec, sink = make(
+        FakeReddit(
+            {"/r/IndianStreetBets/new": [([post(1)], None)], "/r/IndianStreetBets/comments": [([comment(1)], None)]}
+        )
+    )
     rec.run_once()
     out, total, tagged = symbols.tag_day("2026-10-03", universe=UNIVERSE)
     assert (total, tagged) == (2, 2)
@@ -239,14 +280,14 @@ def test_tag_day_writes_versioned_derived_dataset(env):
     derived = [json.loads(line) for line in out.read_text().splitlines()]
     assert {tuple(d["symbols"]) for d in derived} == {("RELIANCE",), ("INFY", "TCS")}
     assert all("text" not in d and d["universe_sha256"] == "0" * 64 for d in derived)
-    assert rows(sink)[0]["title"] == "$RELIANCE post 1"            # raw untouched
+    assert rows(sink)[0]["title"] == "$RELIANCE post 1"  # raw untouched
 
 
 def test_refresh_universe_validates_and_snapshots(env):
     csv_body = "Company Name,Industry,Symbol,Series,ISIN Code\n" + "".join(
-        f"Co {i},X,SYM{i},EQ,INE{i:09d}\n" for i in range(450))
-    path = symbols.refresh_universe(http=lambda *a: (200, {}, csv_body.encode()),
-                                    today=datetime(2026, 10, 3).date())
+        f"Co {i},X,SYM{i},EQ,INE{i:09d}\n" for i in range(450)
+    )
+    path = symbols.refresh_universe(http=lambda *a: (200, {}, csv_body.encode()), today=datetime(2026, 10, 3).date())
     u = symbols.load_universe(path)
     assert len(u.symbols) == 450 and u.as_of == "2026-10-03"
     with pytest.raises(social.SourceError):

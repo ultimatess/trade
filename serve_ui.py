@@ -6,9 +6,10 @@ Run:
     python3 serve_ui.py --port 8080
 """
 
-import sys
 import argparse
+
 from trade.web.server import run_server
+
 
 def main():
     parser = argparse.ArgumentParser(description="Start the Indian Quant Trading Web Dashboard.")
@@ -16,10 +17,11 @@ def main():
     args = parser.parse_args()
 
     print("=" * 72)
-    print(f"  QUANTUM REFLEX // NSE INTRADAY TRADING ENGINE")
+    print("  QUANTUM REFLEX // NSE INTRADAY TRADING ENGINE")
     print(f"  Starting Local Web Server on http://localhost:{args.port}")
     print("=" * 72)
     run_server(args.port)
+
 
 if __name__ == "__main__":
     main()
