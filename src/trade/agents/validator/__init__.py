@@ -1,1 +1,1 @@
-"""Validator agent: runs candidates through research validation gates."""
+"""Validator agent: runs candidates through research validation gates. NOT IMPLEMENTED."""

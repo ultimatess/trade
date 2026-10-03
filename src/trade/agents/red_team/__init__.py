@@ -1,1 +1,1 @@
-"""Red team agent: attacks candidate strategies before promotion."""
+"""Red team agent: attacks candidate strategies before promotion. NOT IMPLEMENTED."""

@@ -1,1 +1,1 @@
-"""Trading hypotheses under investigation."""
+"""Trading hypotheses under investigation. NOT IMPLEMENTED."""

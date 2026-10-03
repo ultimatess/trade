@@ -1,1 +1,1 @@
-"""Mean reversion strategy (not yet implemented)."""
+"""Mean reversion strategy. NOT IMPLEMENTED."""

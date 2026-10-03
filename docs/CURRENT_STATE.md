@@ -1,6 +1,8 @@
 # Current State — Repository Audit (Phase 0)
 
 Audited revision: `1b98aab` (branch `refactor/target-layout`), 2026-10-03.
+
+> **Revision note (Phase 1):** this document is the Phase 0 snapshot. File paths have since moved under `src/trade/` and the safety/security findings have been fixed. Current status of every finding is in [KNOWN_DEFECTS.md](KNOWN_DEFECTS.md).
 Scope: every file in the repository. All findings marked **[verified]** were reproduced by running the code; the rest come from reading it.
 
 ---

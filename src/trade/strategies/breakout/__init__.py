@@ -1,1 +1,1 @@
-"""Breakout strategy (not yet implemented)."""
+"""Breakout strategy. NOT IMPLEMENTED."""

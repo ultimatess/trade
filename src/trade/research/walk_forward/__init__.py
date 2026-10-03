@@ -1,1 +1,1 @@
-"""Walk-forward out-of-sample analysis."""
+"""Walk-forward out-of-sample analysis. NOT IMPLEMENTED."""
