@@ -41,6 +41,8 @@ Follow the per-phase discipline in `docs/MIGRATION_PLAN.md`: state the objective
 
 ## Where things are
 
+- **Resume here:** `docs/PROGRESS.md` (status, decisions, approach, next steps)
+
 - Audit and known defects: `docs/CURRENT_STATE.md`, `docs/KNOWN_DEFECTS.md`
 - Architecture: `docs/TARGET_ARCHITECTURE.md` and the other `docs/*_ARCHITECTURE.md` files
 - Plan: `docs/MIGRATION_PLAN.md`

@@ -2,7 +2,7 @@
 
 A local-first system for researching, validating and paper-trading systematic strategies on Indian equities (NSE). It is being built toward a full research → validation → guarded-trading platform. See [docs/TARGET_ARCHITECTURE.md](docs/TARGET_ARCHITECTURE.md) and [docs/MIGRATION_PLAN.md](docs/MIGRATION_PLAN.md).
 
-**Status: Phase 2 (strategy contract) complete.** Paper and demo only. No broker connectivity, and no live trading.
+**Status: Phase 2 (strategy contract) complete.** Paper and demo only. No broker connectivity, and no live trading. Progress and resume guide: [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Core Rule
 > **AI may propose. Code must decide. Risk always has veto power.**
