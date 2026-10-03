@@ -20,4 +20,4 @@ fixed_notional_inr: 20000.0          # notional used by fixed-notional sizing
 # Kelly sizing for a strategy WITHOUT empirical calibration:
 #   legacy_strategy_fraction = honour the strategy's own fraction (legacy behaviour, D-003)
 #   fixed_notional           = refuse Kelly and size at fixed_notional_inr
-uncalibrated_kelly_policy: legacy_strategy_fraction
+uncalibrated_kelly_policy: fixed_notional   # D-003/D-004: uncalibrated strategies cannot use Kelly

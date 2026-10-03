@@ -8,8 +8,8 @@ Defects that change strategy, risk or backtest **outputs** stay in place during 
 |---|---|---|
 | D-001 | Paper broker never debits cash on entry but credits notional + P&L on exit, so cash and NAV inflate and position sizes drift upward | **Fixed** (Phase 2, step 2.3; see tests/golden/CHANGELOG.md) |
 | D-002 | Calibration outcomes are recorded against a constant 0.65, not the forecast; the Brier score is meaningless | **Fixed** (Phase 2, step 2.4) |
-| D-003 | Calibration map is hard-coded, not empirical | Open — Phase 2 (v1 keeps it for parity; Kelly is disabled for uncalibrated strategies) |
-| D-004 | Kelly payoff `b = 0.75` assumes ₹54.26 friction; the code computes ₹21.34 | Open — Phase 2 |
+| D-003 | Calibration map is hard-coded, not empirical | **Mitigated** (Phase 2, step 2.6): no longer drives sizing (uncalibrated → fixed ₹20,000). It still shapes v1's p_win entry threshold, which is immutable v1 logic; a fitted calibration needs recorded data |
+| D-004 | Kelly payoff `b = 0.75` assumes ₹54.26 friction; the code computes ₹21.34 | **Closed** (Phase 2, step 2.6): Kelly is refused for uncalibrated strategies, so `b` no longer affects sizing |
 | D-005 | Docs claimed flat ₹20 + ₹20 brokerage; the code uses `min(₹20, 0.03%)` | **Docs corrected** (Phase 1). Which model is right for the operator's broker is still to be decided |
 | D-006 | Max drawdown (6%) not enforced; daily loss ignores unrealized P&L and never resets | **Fixed** (Phase 2, step 2.5). Daily limit is now net (realized + unrealized) |
 | D-007 | Kill-switch lockfile was cwd-relative; a write failure was swallowed (fail-open) | **Fixed** (Phase 1, task 6) |

@@ -26,6 +26,8 @@ def test_repo_config_loads_and_matches_legacy_values():
     assert c.MAX_DAILY_LOSS == 2_000.0
     assert c.MAX_ACCOUNT_DRAWDOWN_PCT == 0.06  # operator decision 2026-10-03
     assert c.STARTING_CAPITAL == 100_000.0
+    assert c.risk.uncalibrated_kelly_policy == "fixed_notional"  # D-003/D-004
+    assert c.risk.fixed_notional_inr == 20_000.0
     assert all(len(s.sha256) == 64 for s in c.sources)
 
 

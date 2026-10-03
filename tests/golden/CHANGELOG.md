@@ -47,3 +47,23 @@ The `reflex` and `risk` fixtures are pinned to the frozen legacy oracle and neve
 **Fix:** `check_portfolio` (every cycle) halts on net daily loss (`day_start_equity − equity`, realized + unrealized) ≥ ₹2,000 or on drawdown from the high-water mark ≥ 6%. Daily counters reset at each IST session. On a halt the pipeline flattens open positions (exit reason `RISK_HALT`).
 **Semantic change:** the daily limit is now **net**, so winning trades offset losing ones. Under the legacy gross rule, a day of +₹1,000 and −₹2,100 halted; now it does not (net −₹1,100).
 **Golden effect: none.** After the D-001 fix, no recorded scenario reaches either limit (max drawdown in the backtests is ≤ 0.22%, and no run is down ₹2,000 net). The new behaviour is covered by `tests/risk/test_portfolio_limits.py`.
+
+## D-003 / D-004 — no Kelly sizing for an uncalibrated strategy (Phase 2, step 2.6)
+
+**Defect:** v1 sized positions with quarter-Kelly on a probability from a hard-coded "calibration" table (D-003), using a payoff ratio `b = 0.75` derived from a wrong friction figure (D-004).
+**Fix:** system policy `uncalibrated_kelly_policy: fixed_notional` (config/risk_limits.yaml). A strategy without an empirical CalibrationResult is sized at `fixed_notional_inr` (₹20,000, the size specified in strategy.md), capped by cash and limits. Strategy v1 is unchanged (immutable); the system refuses its Kelly request.
+**Effect:** positions grow from about ₹7.5k to ₹20k, so P&L and losses scale up about 2.7× on the same signals.
+
+### backtest
+| run | total_trades | net_pnl | final_equity | hit_rate_pct | sharpe_ratio | max_drawdown_pct | t_statistic |
+|---|---|---|---|---|---|---|---|
+| seed123_n150 | 24 → 24 | 381.73 → 786.02 | 100381.73 → 100786.02 | 58.33 → 58.33 | 3.36 → 3.07 | 0.22 → 0.48 | 1.04 → 0.95 |
+| seed123_n500 | 84 → 84 | 2675.56 → 6306.05 | 102675.56 → 106306.05 | 71.43 → 71.43 | 9.71 → 10.18 | 0.22 → 0.48 | 4.34 → 4.55 |
+| seed1_n500 | 84 → 84 | 4020.56 → 8987.45 | 104020.56 → 108987.45 | 80.95 → 80.95 | 16.23 → 16.91 | 0.17 → 0.32 | 7.26 → 7.56 |
+| seed2_n500 | 85 → 85 | 4348.52 → 9443.67 | 104348.52 → 109443.67 | 82.35 → 82.35 | 18.1 → 18.22 | 0.16 → 0.32 | 8.09 → 8.15 |
+| seed3_n500 | 75 → 75 | 3624.75 → 8442.64 | 103624.75 → 108442.64 | 82.67 → 82.67 | 17.45 → 17.54 | 0.14 → 0.3 | 7.81 → 7.85 |
+| seed42_n500 | 82 → 82 | 3734.82 → 8656.21 | 103734.82 → 108656.21 | 81.71 → 81.71 | 15.73 → 16.4 | 0.15 → 0.34 | 7.03 → 7.33 |
+
+### paper_cycle
+- cash 99990.94 → 99978.86; equity 99990.94 → 99978.86; trades 1 → 1; brier 0.516961 → 0.516961
+
