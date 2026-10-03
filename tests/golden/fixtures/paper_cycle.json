@@ -1,7 +1,7 @@
 {
  "brier": 0.0,
  "broker": {
-  "cash": 108532.6087,
+  "cash": 99990.94,
   "daily_realized_loss": 9.06,
   "daily_realized_pnl": -9.06,
   "positions": {
@@ -16,7 +16,7 @@
     "target_price": 159.76
    }
   },
-  "total_equity": 108532.6087,
+  "total_equity": 99990.94,
   "trades": [
    {
     "entry_price": 158.17905,

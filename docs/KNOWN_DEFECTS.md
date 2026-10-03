@@ -6,7 +6,7 @@ Defects that change strategy, risk or backtest **outputs** stay in place during 
 
 | ID | Defect | Status |
 |---|---|---|
-| D-001 | Paper broker never debits cash on entry but credits notional + P&L on exit, so cash and NAV inflate and position sizes drift upward | Open — Phase 2 |
+| D-001 | Paper broker never debits cash on entry but credits notional + P&L on exit, so cash and NAV inflate and position sizes drift upward | **Fixed** (Phase 2, step 2.3; see tests/golden/CHANGELOG.md) |
 | D-002 | Calibration outcomes are recorded against a constant 0.65, not the forecast; the Brier score is meaningless | Open — Phase 2 |
 | D-003 | Calibration map is hard-coded, not empirical | Open — Phase 2 (v1 keeps it for parity; Kelly is disabled for uncalibrated strategies) |
 | D-004 | Kelly payoff `b = 0.75` assumes ₹54.26 friction; the code computes ₹21.34 | Open — Phase 2 |

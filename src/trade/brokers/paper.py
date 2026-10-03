@@ -2,7 +2,7 @@
 Indian paper broker (in-memory simulator).
 Fills entries at price + 0.05%, evaluates take-profit / stop / timeout on each
 tick, and applies statutory charges. No order book, queue, latency, partial
-fills or gaps. Known defect D-001: cash is not debited on entry.
+fills or gaps. Long-only, cash-funded (no leverage).
 """
 
 import logging
@@ -34,9 +34,9 @@ class IndianPaperBroker:
 
     @property
     def total_equity(self) -> float:
-        """Returns total portfolio NAV including cash and unrealized P&L."""
-        unrealized = sum(pos.gross_unrealized_pnl for pos in self.positions.values() if pos.is_active)
-        return self.cash + unrealized
+        """NAV = cash + market value of open positions (charges are deducted when a position closes)."""
+        market_value = sum(pos.current_price * pos.quantity for pos in self.positions.values() if pos.is_active)
+        return self.cash + market_value
 
     def portfolio_view(self, as_of: float) -> PortfolioView:
         active = [p for p in self.positions.values() if p.is_active]
@@ -62,6 +62,10 @@ class IndianPaperBroker:
         # Fixed entry slippage of 0.05%
         slippage = current_price * 0.0005
         fill_price = current_price + slippage
+        if fill_price * quantity > self.cash:
+            logger.warning(f"Insufficient cash for {intent.symbol}: need ₹{fill_price * quantity:,.2f}")
+            return None
+        self.cash -= fill_price * quantity  # D-001: entry notional is debited
 
         order = Order(
             client_order_id=str(uuid.uuid4()),

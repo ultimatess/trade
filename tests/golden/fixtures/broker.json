@@ -1,8 +1,8 @@
 {
  "flatten_dup_tiny": {
-  "cash": 119544.03,
-  "daily_realized_loss": 65.77,
-  "daily_realized_pnl": -65.77,
+  "cash": 99935.08,
+  "daily_realized_loss": 64.92,
+  "daily_realized_pnl": -64.92,
   "dup_is_none": true,
   "positions": {
    "D": {
@@ -20,14 +20,14 @@
     "entry_price": 800.4,
     "entry_time": 1000.0,
     "is_active": false,
-    "quantity": 12,
+    "quantity": 11,
     "stop_loss_price": 794.8,
     "symbol": "E",
     "target_price": 808.4
    }
   },
   "tiny_is_none": true,
-  "total_equity": 119544.03,
+  "total_equity": 99935.08,
   "trades": [
    {
     "entry_price": 500.25,
@@ -48,15 +48,15 @@
     "exit_reason": "KILL_SWITCH",
     "exit_time": 1200.0,
     "gross_pnl": 0.0,
-    "net_pnl": -10.19,
-    "quantity": 12,
+    "net_pnl": -9.34,
+    "quantity": 11,
     "symbol": "E",
-    "total_statutory_charges": 10.19
+    "total_statutory_charges": 9.34
    }
   ]
  },
  "repeated_trades_cash_drift": {
-  "cash": 221131.89999999997,
+  "cash": 101071.89999999997,
   "daily_realized_loss": 0.0,
   "daily_realized_pnl": 1071.9,
   "positions": {
@@ -71,7 +71,7 @@
     "target_price": 101.05
    }
   },
-  "total_equity": 221131.89999999997,
+  "total_equity": 101071.89999999997,
   "trades": [
    {
     "entry_price": 100.05,
@@ -148,7 +148,7 @@
   ]
  },
  "stop_loss": {
-  "cash": 107191.595,
+  "cash": 99937.97,
   "daily_realized_loss": 62.03,
   "daily_realized_pnl": -62.03,
   "positions": {
@@ -163,7 +163,7 @@
     "target_price": 1465.23
    }
   },
-  "total_equity": 107191.595,
+  "total_equity": 99937.97,
   "trades": [
    {
     "entry_price": 1450.725,
@@ -180,7 +180,7 @@
   ]
  },
  "take_profit": {
-  "cash": 120188.65,
+  "cash": 100178.65,
   "daily_realized_loss": 0.0,
   "daily_realized_pnl": 178.65,
   "order_price": 100.05,
@@ -197,7 +197,7 @@
     "target_price": 101.05
    }
   },
-  "total_equity": 120188.65,
+  "total_equity": 100178.65,
   "trades": [
    {
     "entry_price": 100.05,
@@ -214,7 +214,7 @@
   ]
  },
  "timeout": {
-  "cash": 109849.0466,
+  "cash": 99990.92,
   "daily_realized_loss": 9.08,
   "daily_realized_pnl": -9.08,
   "positions": {
@@ -229,7 +229,7 @@
     "target_price": 158.04
    }
   },
-  "total_equity": 109849.0466,
+  "total_equity": 99990.92,
   "trades": [
    {
     "entry_price": 156.47820000000002,
