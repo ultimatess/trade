@@ -15,3 +15,6 @@ trading.lock
 
 # OS
 .DS_Store
+
+# Runtime state (kill switch, operator token) and recorded data
+var/

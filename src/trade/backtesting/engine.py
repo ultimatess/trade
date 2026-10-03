@@ -5,7 +5,9 @@ Sharpe > 1.5, Max Drawdown < 15%, Hit Rate > 55%, t-statistic > 2.0.
 """
 
 import math
+import os
 import random
+import tempfile
 import logging
 from typing import Dict, List, Any, Tuple
 from trade.core.config import config
@@ -108,9 +110,11 @@ class BacktestRunner:
         Executes backtest over synthetic multi-regime market series
         (Regime 1: Strong Trend, Regime 2: Choppy Churn, Regime 3: Bot Pump & Dump).
         """
-        risk_engine = RiskEngine(lockfile_path="/tmp/backtest_trading.lock")
-        if risk_engine.is_kill_switch_active():
-            risk_engine.clear_kill_switch()
+        # Isolated per-run kill-switch state: never clears a shared lockfile.
+        with tempfile.TemporaryDirectory(prefix="backtest_state_") as run_state:
+            return self._run(RiskEngine(lockfile_path=os.path.join(run_state, "trading.lock")), total_candles)
+
+    def _run(self, risk_engine: RiskEngine, total_candles: int) -> Dict[str, Any]:
 
         calibration_engine = CalibrationEngine()
         reflex_scorer = FastReflexScorer(calibration_engine)

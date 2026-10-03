@@ -6,39 +6,63 @@ Enforces hardcoded capital caps, circuit limits, and emergency flattening.
 
 import os
 import logging
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Tuple, List, Optional
-from trade.core.config import config
+from trade.core.config import config, state_dir
 from trade.core.market_state.models import MarketSnapshot
 from trade.core.signals.models import SocialSignal
 
 logger = logging.getLogger("RiskEngine")
 
 class RiskEngine:
-    """Zero-trust deterministic risk guardian."""
+    """Deterministic risk guardian. The kill switch fails closed."""
 
     def __init__(self, lockfile_path: Optional[str] = None):
-        self.lockfile_path = lockfile_path or config.LOCKFILE_PATH
+        # Absolute path: the kill switch must not depend on the working directory.
+        path = Path(lockfile_path) if lockfile_path else state_dir() / config.LOCKFILE_PATH
+        self.lockfile_path = str(path.resolve())
+        # In-memory halt survives a failed lockfile write; only an explicit clear resets it.
+        self._halted_in_memory = False
 
     def is_kill_switch_active(self) -> bool:
-        """Checks if emergency halt lockfile is present."""
-        return os.path.exists(self.lockfile_path)
+        """Active if halted in memory, the lockfile exists, or the lockfile state cannot be read."""
+        if self._halted_in_memory:
+            return True
+        try:
+            Path(self.lockfile_path).stat()
+            return True
+        except FileNotFoundError:
+            return False
+        except OSError as e:
+            logger.critical(f"Kill switch state unreadable ({e}); treating as ACTIVE")
+            return True
 
     def trigger_kill_switch(self, reason: str) -> None:
-        """Engages the emergency kill switch, dropping lockfile."""
+        """Engages the kill switch: halt in memory first, then persist the lockfile."""
+        self._halted_in_memory = True
         logger.critical(f"EMERGENCY KILL SWITCH ENGAGED: {reason}")
         try:
+            Path(self.lockfile_path).parent.mkdir(parents=True, exist_ok=True)
             with open(self.lockfile_path, "w") as f:
-                f.write(f"REASON: {reason}\nTRIGGERED_AT: {os.times()}\n")
+                f.write(f"REASON: {reason}\nTRIGGERED_AT: {datetime.now(timezone.utc).isoformat()}\n")
         except Exception as e:
-            logger.error(f"Failed to write lockfile: {e}")
+            logger.critical(f"Failed to persist kill switch lockfile ({e}); remaining HALTED in memory")
 
     def clear_kill_switch(self) -> bool:
-        """Allows manual administrative unlock."""
-        if os.path.exists(self.lockfile_path):
+        """Manual operator unlock. Stays halted if the lockfile cannot be removed."""
+        try:
             os.remove(self.lockfile_path)
-            logger.info("Kill switch reset by authorized operator.")
-            return True
-        return False
+        except FileNotFoundError:
+            pass
+        except OSError as e:
+            logger.critical(f"Failed to remove kill switch lockfile ({e}); remaining HALTED")
+            return False
+        was_active = self._halted_in_memory
+        self._halted_in_memory = False
+        if was_active or not self.is_kill_switch_active():
+            logger.info("Kill switch reset by operator.")
+        return True
 
     def validate_pre_trade_gates(
         self,

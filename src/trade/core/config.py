@@ -37,6 +37,11 @@ def config_dir() -> Path:
     return Path(os.environ.get("TRADE_CONFIG_DIR", _REPO_ROOT / "config")).resolve()
 
 
+def state_dir() -> Path:
+    """Persistent runtime state (kill switch, operator token). Absolute; never cwd-relative."""
+    return Path(os.environ.get("TRADE_STATE_DIR", _REPO_ROOT / "var" / "state")).resolve()
+
+
 @dataclass(frozen=True)
 class LoadedFile:
     path: str
