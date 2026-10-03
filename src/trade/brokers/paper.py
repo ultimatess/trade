@@ -1,6 +1,8 @@
 """
-High-Fidelity Indian Paper Broker & Execution Simulator.
-Accurately models NSE order matching, OCO brackets, slippage, and statutory taxes.
+Indian paper broker (in-memory simulator).
+Fills entries at price + 0.05%, evaluates take-profit / stop / timeout on each
+tick, and applies statutory charges. No order book, queue, latency, partial
+fills or gaps. Known defect D-001: cash is not debited on entry.
 """
 
 import uuid
@@ -39,7 +41,7 @@ class IndianPaperBroker:
         current_time: float
     ) -> Optional[Order]:
         """
-        Submits atomic entry order and registers OCO take-profit / stop-loss bracket.
+        Fills an entry immediately and registers take-profit / stop-loss levels for it.
         """
         if symbol in self.positions and self.positions[symbol].is_active:
             logger.warning(f"Position already active for {symbol}, rejecting duplicate order.")

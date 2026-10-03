@@ -1,7 +1,7 @@
 """
 Deterministic Risk Engine & Kill Switch (Layer 3 Core).
-Owns 100% veto authority over model recommendations.
-Enforces hardcoded capital caps, circuit limits, and emergency flattening.
+Has veto authority over model recommendations.
+Enforces pre-trade gates and the kill switch. Flattening is done by the caller.
 """
 
 import os

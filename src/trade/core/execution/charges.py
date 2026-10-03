@@ -1,13 +1,13 @@
 """
 Indian Equity Statutory Charges & Taxation Calculator (NSE Intraday MIS).
-Computes exact brokerage, STT, Exchange transaction charges, SEBI fees, Stamp Duty, and GST.
+Computes brokerage, STT, Exchange transaction charges, SEBI fees, Stamp Duty, and GST.
 """
 
 from typing import Dict
 from trade.core.config import config
 
 class IndianTaxCalculator:
-    """Accurately calculates real-world transaction friction on Indian markets."""
+    """Statutory and brokerage charges per round trip, from the configured cost model."""
 
     @staticmethod
     def calculate_charges(buy_price: float, sell_price: float, quantity: int) -> Dict[str, float]:

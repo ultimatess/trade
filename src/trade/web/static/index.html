@@ -45,7 +45,7 @@
           QUANTUM REFLEX // NSE SCALPER
         </h1>
         <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold border border-blue-500/40 bg-blue-500/10 text-blue-400">
-          3-LAYER DETERMINISTIC CORE
+          PAPER / DEMO ONLY
         </span>
       </div>
       <p class="text-xs text-gray-400 mt-1">
@@ -177,20 +177,20 @@ $TATASTEEL positive earnings revision</textarea>
       </div>
     </div>
 
-    <!-- MIDDLE: 2-YEAR HISTORICAL BACKTEST GATE RUNNER (4 COLS) -->
+    <!-- MIDDLE: LEGACY SYNTHETIC SIMULATION (4 COLS) -->
     <div class="lg:col-span-4 panel p-4 rounded-xl flex flex-col justify-between">
       <div>
         <div class="flex items-center justify-between pb-3 mb-3 border-b border-gray-800">
           <h2 class="text-sm font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
-            <span>📊</span> Backtest Gate Validator
+            <span>📊</span> Legacy Synthetic Simulation
           </h2>
           <span class="text-[10px] bg-purple-950 text-purple-300 border border-purple-800/40 px-2 py-0.5 rounded">
-            Out-of-Sample Harness
+            NOT EVIDENCE
           </span>
         </div>
 
         <p class="text-xs text-gray-400 mb-3">
-          Simulates 500 multi-regime candles across Trending, Choppy, and Bot Pump-and-Dump environments with full Indian statutory friction.
+          Runs 500 synthetic one-minute candles from the legacy generator. Its features are drawn from the same regime as the price moves, so a pass demonstrates mechanics only, not an edge (docs/CURRENT_STATE.md section 6). No out-of-sample split.
         </p>
 
         <!-- BACKTEST GATE CHECKLIST -->
@@ -216,10 +216,10 @@ $TATASTEEL positive earnings revision</textarea>
 
       <div>
         <div id="bt-overall-banner" class="text-center text-xs font-semibold py-1.5 px-2 rounded mb-2 bg-gray-900 text-gray-500 border border-gray-800">
-          AWAITING BACKTEST EXECUTION
+          AWAITING SIMULATION
         </div>
         <button onclick="runBacktest()" id="btn-run-backtest" class="w-full py-2 rounded text-xs font-bold bg-purple-700 hover:bg-purple-600 text-white transition flex items-center justify-center gap-1.5">
-          <span>⚡</span> RUN MULTI-REGIME SIMULATION
+          <span>⚡</span> RUN LEGACY SYNTHETIC SIMULATION
         </button>
       </div>
     </div>
@@ -231,7 +231,7 @@ $TATASTEEL positive earnings revision</textarea>
           <span>🧠</span> Fast Reflex Telemetry
         </h2>
         <span class="text-[10px] bg-amber-950 text-amber-300 border border-amber-800/40 px-2 py-0.5 rounded">
-          Sub-Second Layer
+          Hand-Weighted, Uncalibrated
         </span>
       </div>
 
@@ -528,15 +528,15 @@ $TATASTEEL positive earnings revision</textarea>
         const banner = document.getElementById("bt-overall-banner");
         if (data.passed_all_gates) {
           banner.className = "text-center text-xs font-bold py-1.5 px-2 rounded mb-2 bg-emerald-950 text-emerald-300 border border-emerald-700/50";
-          banner.innerText = `🏆 GATES PASSED: ₹${data.net_pnl.toLocaleString('en-IN', {minimumFractionDigits: 2})} Net P&L (${data.wins}W / ${data.losses}L)`;
+          banner.innerText = `LEGACY GATES PASSED ON SYNTHETIC DATA (NOT EVIDENCE): ₹${data.net_pnl.toLocaleString('en-IN', {minimumFractionDigits: 2})} Net P&L (${data.wins}W / ${data.losses}L)`;
         } else {
           banner.className = "text-center text-xs font-bold py-1.5 px-2 rounded mb-2 bg-rose-950 text-rose-300 border border-rose-700/50";
-          banner.innerText = "❌ FAILED ONE OR MORE GATES";
+          banner.innerText = "LEGACY GATES FAILED ON SYNTHETIC DATA";
         }
       } catch (err) {
         alert("Backtest failed: " + err);
       } finally {
-        btn.innerText = "⚡ RUN MULTI-REGIME SIMULATION";
+        btn.innerText = "⚡ RUN LEGACY SYNTHETIC SIMULATION";
         btn.disabled = false;
         fetchStatus();
       }

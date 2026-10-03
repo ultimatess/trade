@@ -1,7 +1,8 @@
 """
 Free Social Momentum & Cashtag Ingestion Pipeline.
 Extracts trending signals from StockTwits and social scrapers without paid APIs.
-Enforces strict prompt-injection isolation and bot cluster filtering.
+Text is reduced to numeric features and is never passed to a model.
+Bot filtering is a duplicate-text heuristic only.
 """
 
 import re
@@ -52,7 +53,7 @@ class SocialMomentumScanner:
 
     def fetch_stocktwits_trending(self) -> List[Dict]:
         """
-        Polls StockTwits public trending endpoint (100% Free, no API key).
+        Polls StockTwits public trending endpoint (no API key). Currently blocked by Cloudflare (HTTP 403) and unused.
         Returns list of trending symbol dictionaries.
         """
         url = "https://api.stocktwits.com/api/2/streams/trending.json"

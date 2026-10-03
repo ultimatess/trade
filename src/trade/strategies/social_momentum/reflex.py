@@ -1,6 +1,7 @@
 """
 Fast Reflex Decision Engine & Sizing Layer (Layer 2).
-Provides sub-second calibrated probabilistic scoring on compact numeric states.
+Hand-weighted scoring on compact numeric states. The calibration table is
+hard-coded, not fitted to data (D-003), so probabilities are uncalibrated.
 Calculates capped quarter-Kelly sizing and monitors Brier calibration scores.
 """
 
@@ -15,7 +16,7 @@ from trade.core.strategy.calibration import CalibrationEngine
 logger = logging.getLogger("ReflexEngine")
 
 class FastReflexScorer:
-    """Sub-second quantitative decision scorer."""
+    """Hand-weighted decision scorer (Strategy #001 v1 legacy logic)."""
 
     def __init__(self, calibration_engine: Optional[CalibrationEngine] = None):
         self.calibration = calibration_engine or CalibrationEngine()
@@ -23,7 +24,6 @@ class FastReflexScorer:
     def evaluate(self, snapshot: MarketSnapshot, signal: SocialSignal) -> ReflexDecision:
         """
         Evaluates compact numeric snapshot and returns structured ReflexDecision.
-        Executes in < 2ms locally.
         """
         # Question 1: Is social surge organic rather than bot spoofing?
         # Higher unique verified ratio and lower spam score -> high organic probability

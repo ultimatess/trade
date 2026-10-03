@@ -187,13 +187,13 @@ class SystemStateHolder:
                 return {"success": False, "step": "BROKER_REJECT"}
 
     def run_backtest(self, total_candles: int = 500):
-        self.log("Starting 2-Year Multi-Regime Backtest Gate...")
+        self.log("Starting legacy synthetic simulation (not evidence of edge)...")
         runner = BacktestRunner(seed=int(time.time()))
         metrics = runner.run_multi_regime_simulation(total_candles=total_candles)
         with self.lock:
             self.latest_backtest_results = metrics
         self.log(
-            f"Backtest completed: {metrics['total_trades']} trades | "
+            f"Legacy synthetic simulation completed: {metrics['total_trades']} trades | "
             f"Hit Rate: {metrics['hit_rate_pct']:.1f}% | Sharpe: {metrics['sharpe_ratio']:.2f} | "
             f"Net P&L: ₹{metrics['net_pnl']:+,.2f}"
         )

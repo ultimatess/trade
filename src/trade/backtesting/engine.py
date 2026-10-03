@@ -1,7 +1,9 @@
 """
-Quantitative Backtesting Harness & Statistical Gate Validator.
-Applies real statutory friction, slippage, and tests out-of-sample statistical gates:
-Sharpe > 1.5, Max Drawdown < 15%, Hit Rate > 55%, t-statistic > 2.0.
+Legacy synthetic backtest harness and trade-level metrics.
+Applies statutory charges and fixed slippage, then checks Sharpe >= 1.5,
+Max Drawdown <= 15%, Hit Rate >= 55%, t-statistic >= 2.0 over ALL trades.
+There is no out-of-sample split, and the synthetic generator is circular
+(docs/CURRENT_STATE.md section 6). Replaced by the event-driven engine in Phase 3.
 """
 
 import math
@@ -69,7 +71,7 @@ class BacktestMetrics:
         trades_per_year = min(750, max(250, total_trades * 5))
         sharpe = (mean_ret / std_ret) * math.sqrt(trades_per_year) if std_ret > 0 else 0.0
 
-        # Out-of-sample t-statistic for positive alpha: t = (mean - 0) / (std / sqrt(n))
+        # One-sample t-statistic over all trades (no OOS split): t = (mean - 0) / (std / sqrt(n))
         se = std_ret / math.sqrt(total_trades) if total_trades > 0 else 1.0
         t_stat = mean_ret / se if se > 0 else 0.0
 
@@ -100,7 +102,7 @@ class BacktestMetrics:
 
 
 class BacktestRunner:
-    """Simulates realistic multi-regime market environments with Twitter signals."""
+    """Legacy synthetic multi-regime simulator (circular generator; not evidence)."""
 
     def __init__(self, seed: int = 42):
         self.rng = random.Random(seed)
