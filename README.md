@@ -23,6 +23,22 @@ A zero-error, 3-layer quantitative trading system engineered for **Indian Equiti
 
 ---
 
+## Repository Layout
+```
+core/            Deterministic core (config, market_state, strategy, signals, risk, execution, portfolio, ledger)
+data/            Data providers, datasets, data quality checks
+strategies/      Strategy implementations (social_momentum, breakout, mean_reversion, generated)
+research/        Experiments, hypotheses, validation, walk-forward, red-team
+agents/          Advisory research agents (researcher, strategy_builder, validator, red_team)
+backtesting/     Backtest harness & statistical gates
+paper/           Paper trading execution loop
+brokers/         Broker adapters (paper)
+web/             Web dashboard, REST API, terminal monitor
+tests/           Unit & integration tests
+```
+
+---
+
 ## Sizing & Indian Market Friction
 - **Capital:** ₹1,00,000 INR
 - **Max Trade Size:** ₹20,000 (20% NAV cash / 1x MIS allocation)
@@ -44,21 +60,21 @@ A zero-error, 3-layer quantitative trading system engineered for **Indian Equiti
 
 ### 1. Run Comprehensive Unit & Integration Tests
 ```bash
-python3 -m unittest india_quant_bot/tests/test_quant_system.py
+python3 -m unittest discover tests
 ```
 
 ### 2. Run Historical Multi-Regime Backtest Gate
 Tests Sharpe, Max Drawdown, Hit Rate, and out-of-sample t-statistic:
 ```bash
-python3 -m india_quant_bot.run_backtest
+python3 -m backtesting
 ```
 
 ### 3. Run Live Execution Loop Demonstration
 ```bash
-python3 -m india_quant_bot.main
+python3 -m paper
 ```
 
 ### 4. Render Live Monitoring Dashboard
 ```bash
-python3 -m india_quant_bot.dashboard.monitor
+python3 -m web.terminal
 ```

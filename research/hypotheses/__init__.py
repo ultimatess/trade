@@ -1,0 +1,1 @@
+"""Trading hypotheses under investigation."""
