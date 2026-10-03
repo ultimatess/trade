@@ -12,7 +12,7 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime
 
-from trade.core.config import config
+from trade.core.config import config, log_config_fingerprint
 from trade.core.risk.engine import RiskEngine
 from trade.strategies.social_momentum.reflex import FastReflexScorer
 from trade.core.strategy.calibration import CalibrationEngine
@@ -362,6 +362,8 @@ class QuantRequestHandler(BaseHTTPRequestHandler):
 
 
 def run_server(port: int = 8080):
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+    log_config_fingerprint(logger)
     server_address = ("0.0.0.0", port)
     httpd = ThreadingHTTPServer(server_address, QuantRequestHandler)
     print(f"🚀 Quant Web Dashboard Server running at http://localhost:{port}")

@@ -1,0 +1,12 @@
+# NSE equity intraday (MIS) statutory charges.
+# Rates must be verified against current NSE / SEBI circulars before use.
+id: nse_intraday
+version: 1
+currency: INR
+brokerage_per_order_flat: 20.0       # brokerage = min(flat, pct x leg turnover), per leg
+brokerage_per_order_pct: 0.0003
+stt_sell_pct: 0.00025
+exchange_txn_pct: 0.0000297
+sebi_pct: 0.000001
+stamp_duty_buy_pct: 0.00003
+gst_pct: 0.18                        # on brokerage + exchange txn + SEBI

@@ -1,0 +1,4 @@
+# Runtime settings (not risk limits).
+version: 1
+starting_capital_inr: 100000.0
+broker_type: PAPER                   # overridable via BROKER_TYPE env var

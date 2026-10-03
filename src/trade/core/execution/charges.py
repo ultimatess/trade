@@ -15,9 +15,9 @@ class IndianTaxCalculator:
         turnover_sell = sell_price * quantity
         total_turnover = turnover_buy + turnover_sell
 
-        # 1. Brokerage: ₹20 per executed leg (standard discount broker model)
-        brokerage = min(config.BROKERAGE_PER_ORDER, turnover_buy * 0.0003) + \
-                    min(config.BROKERAGE_PER_ORDER, turnover_sell * 0.0003)
+        # 1. Brokerage: min(flat ₹20, 0.03% of leg turnover) per executed leg
+        brokerage = min(config.BROKERAGE_PER_ORDER, turnover_buy * config.BROKERAGE_PER_ORDER_PCT) + \
+                    min(config.BROKERAGE_PER_ORDER, turnover_sell * config.BROKERAGE_PER_ORDER_PCT)
 
         # 2. STT: 0.025% on sell turnover for equity intraday
         stt = turnover_sell * config.STT_SELL_PCT

@@ -1,0 +1,16 @@
+# Deterministic risk limits. Loaded ONCE at start-up; SHA-256 is logged.
+# No API, agent or runtime code may modify these. Changing them requires
+# editing this file and restarting. See docs/RISK_ARCHITECTURE.md.
+version: 1
+max_order_notional_inr: 20000.0      # max capital per trade
+max_open_positions: 2
+max_daily_loss_inr: 2000.0
+# Operator decision 2026-10-03: 6% from high-water mark -> halt for manual review.
+# NOT YET ENFORCED (defect D-006); enforcement lands in Phase 2.
+max_drawdown_pct: 0.06
+max_spread_pct: 0.0015
+circuit_buffer_pct: 0.015
+min_adv_inr: 100000000.0
+entry_window_start: "09:30"          # IST
+entry_window_end: "14:30"            # IST
+mandatory_squareoff: "15:10"         # IST

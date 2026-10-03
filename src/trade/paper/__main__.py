@@ -3,10 +3,13 @@ Paper Trading Entry Point.
 Runs a demonstration cycle of the live execution loop against the paper broker.
 """
 
-from trade.core.config import config
+import logging
+
+from trade.core.config import config, log_config_fingerprint
 from trade.paper.trading_system import QuantTradingSystem
 
 def main():
+    log_config_fingerprint(logging.getLogger("Config"))
     system = QuantTradingSystem()
     print("=" * 70)
     print("AUTONOMOUS QUANT TRADING SYSTEM - NSE INTRADAY")
